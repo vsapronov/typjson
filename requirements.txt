@@ -1,0 +1,2 @@
+pytest==4.6.6
+typing_inspect==0.6.0
