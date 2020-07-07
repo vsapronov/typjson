@@ -1,6 +1,6 @@
 import json
 from typing import *
-from typing_inspect import *
+import typing_inspect as inspect
 import dataclasses
 import datetime
 from datetime import date
@@ -57,7 +57,19 @@ class DataclassSerializer:
         return obj
 
 
-serializers = [PrimitiveSerializer(), DateSerializer(), DataclassSerializer()]
+class ListSerializer:
+    def is_applicable(self, typ):
+        return inspect.is_generic_type(typ) and inspect.get_origin(typ) == list
+
+    def serialize(self, obj):
+        return obj
+
+    def deserialize(self, typ, data):
+        item_type = inspect.get_args(typ)[0]
+        return [convert(item_type, item) for item in data]
+
+
+serializers = [PrimitiveSerializer(), DateSerializer(), ListSerializer(), DataclassSerializer()]
 
 
 class JsonerEncoder(json.JSONEncoder):
@@ -78,10 +90,12 @@ def convert(typ, data):
         if serializer.is_applicable(typ):
             return serializer.deserialize(typ, data)
 
-    if is_optional_type(typ):
+    if inspect.is_optional_type(typ):
         return data
-    if is_generic_type(typ):
-        return data
+
+    if inspect.is_generic_type(typ):
+        if inspect.get_origin(typ) != list:
+            return data
 
     raise JsonerException(f'Unsupported type {typ}')
 

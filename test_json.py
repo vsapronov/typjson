@@ -52,6 +52,10 @@ def test_list_serialization():
     check_serialization(List[int], [2, 3], '[2, 3]')
 
 
+def test_list_of_date_serialization():
+    check_serialization(List[date], [date(year=2020, month=1, day=2)], '["2020-01-02"]')
+
+
 @dataclass
 class TheClass:
     string_field: str
