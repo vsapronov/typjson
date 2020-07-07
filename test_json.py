@@ -31,6 +31,11 @@ def test_str_serialization():
     check_serialization(str, 'bla', '"bla"')
 
 
+def test_str_deserialization_null_safety():
+    with raises(JsonerException):
+        from_json(str, 'null')
+
+
 def test_bool_serialization():
     check_serialization(bool, True, 'true')
 
@@ -54,6 +59,14 @@ def test_list_serialization():
 
 def test_list_of_date_serialization():
     check_serialization(List[date], [date(year=2020, month=1, day=2)], '["2020-01-02"]')
+
+
+def test_optional_serialization_none():
+    check_serialization(Optional[int], None, 'null')
+
+
+def test_optional_serialization_some():
+    check_serialization(Optional[int], 123, '123')
 
 
 @dataclass

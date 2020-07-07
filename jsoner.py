@@ -69,7 +69,21 @@ class ListSerializer:
         return [convert(item_type, item) for item in data]
 
 
-serializers = [PrimitiveSerializer(), DateSerializer(), ListSerializer(), DataclassSerializer()]
+class OptionalSerializer:
+    def is_applicable(self, typ):
+        return inspect.is_optional_type(typ) and typ != NoneType
+
+    def serialize(self, obj):
+        return obj
+
+    def deserialize(self, typ, data):
+        if data is None:
+            return data
+        internal_type = inspect.get_args(typ)[0]
+        return convert(internal_type, data)
+
+
+serializers = [OptionalSerializer(), PrimitiveSerializer(), DateSerializer(), ListSerializer(), DataclassSerializer()]
 
 
 class JsonerEncoder(json.JSONEncoder):
@@ -89,14 +103,6 @@ def convert(typ, data):
     for serializer in serializers:
         if serializer.is_applicable(typ):
             return serializer.deserialize(typ, data)
-
-    if inspect.is_optional_type(typ):
-        return data
-
-    if inspect.is_generic_type(typ):
-        if inspect.get_origin(typ) != list:
-            return data
-
     raise JsonerException(f'Unsupported type {typ}')
 
 
