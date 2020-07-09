@@ -14,6 +14,11 @@ def test_int_serialization():
     check_serialization(int, 3, '3')
 
 
+def test_int_serialization_boolean():
+    with raises(JsonerException):
+        check_serialization(int, True, 'true')
+
+
 def test_int_deserialization_wrong_type():
     with raises(JsonerException):
         from_json(int, '"3"')
@@ -76,6 +81,13 @@ def test_optional_serialization_none():
 
 def test_optional_serialization_some():
     check_serialization(Optional[int], 123, '123')
+
+
+def test_union_primitive_serialization():
+    check_serialization(Union[str, int], 'bla', '"bla"')
+    check_serialization(Union[str, int], 3, '3')
+    with raises(JsonerException):
+        from_json(Union[str, int], 'true')
 
 
 @dataclass

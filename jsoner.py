@@ -21,7 +21,7 @@ class PrimitiveSerializer:
         return obj
 
     def deserialize(self, typ, data):
-        if not isinstance(data, typ):
+        if not type(data) == typ:
             raise JsonerException(f'Type {typ} was expected, found: {data}')
         return data
 
@@ -83,21 +83,31 @@ class DictSerializer:
         return {key: convert(value_type, value) for (key, value) in data.items()}
 
 
-class OptionalSerializer:
+class UnionSerializer:
     def is_applicable(self, typ):
-        return inspect.is_optional_type(typ) and typ != NoneType
+        return inspect.is_union_type(typ)
 
     def serialize(self, obj):
         return obj
 
     def deserialize(self, typ, data):
-        if data is None:
-            return data
-        internal_type = inspect.get_args(typ)[0]
-        return convert(internal_type, data)
+        union_types = inspect.get_args(typ)
+        for union_type in union_types:
+            try:
+                return convert(union_type, data)
+            except JsonerException:
+                pass
+        raise JsonerException(f'Value {data} can not be deserialized as {typ}')
 
 
-serializers = [OptionalSerializer(), PrimitiveSerializer(), DateSerializer(), ListSerializer(), DictSerializer(), DataclassSerializer()]
+serializers = [
+    PrimitiveSerializer(),
+    DateSerializer(),
+    ListSerializer(),
+    DictSerializer(),
+    UnionSerializer(),
+    DataclassSerializer()
+]
 
 
 class JsonerEncoder(json.JSONEncoder):
