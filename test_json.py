@@ -61,6 +61,15 @@ def test_list_of_date_serialization():
     check_serialization(List[date], [date(year=2020, month=1, day=2)], '["2020-01-02"]')
 
 
+def test_dict_serialization():
+    check_serialization(Dict[str, date], {'key': date(year=2020, month=1, day=2)}, '{"key": "2020-01-02"}')
+
+
+def test_dict_serialization_wrong_key_type():
+    with raises(JsonerException):
+        from_json(Dict[int, date], '{"2": "2020-01-02"}')
+
+
 def test_optional_serialization_none():
     check_serialization(Optional[int], None, 'null')
 

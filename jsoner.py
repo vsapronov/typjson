@@ -69,6 +69,20 @@ class ListSerializer:
         return [convert(item_type, item) for item in data]
 
 
+class DictSerializer:
+    def is_applicable(self, typ):
+        return inspect.is_generic_type(typ) and inspect.get_origin(typ) == dict
+
+    def serialize(self, obj):
+        return obj
+
+    def deserialize(self, typ, data):
+        key_type, value_type = inspect.get_args(typ)
+        if key_type != str:
+            raise JsonerException(f'Dict key type {key_type} is not supported for JSON deserialization - key should be str')
+        return {key: convert(value_type, value) for (key, value) in data.items()}
+
+
 class OptionalSerializer:
     def is_applicable(self, typ):
         return inspect.is_optional_type(typ) and typ != NoneType
@@ -83,7 +97,7 @@ class OptionalSerializer:
         return convert(internal_type, data)
 
 
-serializers = [OptionalSerializer(), PrimitiveSerializer(), DateSerializer(), ListSerializer(), DataclassSerializer()]
+serializers = [OptionalSerializer(), PrimitiveSerializer(), DateSerializer(), ListSerializer(), DictSerializer(), DataclassSerializer()]
 
 
 class JsonerEncoder(json.JSONEncoder):
