@@ -98,6 +98,16 @@ class ListSerializer:
         return [deserialize(item_type, item) for item in json_data]
 
 
+class UntypedListSerializer:
+    @staticmethod
+    def is_applicable(typ):
+        return typ == list
+
+    @staticmethod
+    def serialize(obj, typ):
+        return [serialize(item, None) for item in obj]
+
+
 class DictSerializer:
     @staticmethod
     def is_applicable(typ):
@@ -151,14 +161,25 @@ serializers = [
     ListSerializer,
     DictSerializer,
     UnionSerializer,
+    DataclassSerializer,
+    UntypedListSerializer
+]
+
+deserializers = [
+    PrimitiveSerializer,
+    FloatSerializer,
+    DateSerializer,
+    ListSerializer,
+    DictSerializer,
+    UnionSerializer,
     DataclassSerializer
 ]
 
 
 def deserialize(typ, json_data):
-    for serializer in serializers:
-        if serializer.is_applicable(typ):
-            return serializer.deserialize(typ, json_data)
+    for deserializer in deserializers:
+        if deserializer.is_applicable(typ):
+            return deserializer.deserialize(typ, json_data)
     raise JsonerException(f'Unsupported type {typ}')
 
 
