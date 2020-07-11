@@ -5,27 +5,37 @@ from pytest import *
 from decimal import *
 from datetime import *
 
-def check_serialization(typ, data, the_json):
-    assert to_json(data) == the_json
-    assert from_json(typ, the_json) == data
+
+def check_success(typ, data, json_str):
+    assert to_json(data, typ) == json_str
+    assert from_json(typ, json_str) == data
+
+
+def check_type_error(typ, data, json_str):
+    with raises(JsonerException):
+        to_json(data, typ)
+    with raises(JsonerException):
+        from_json(typ, json_str)
 
 
 def test_int_serialization():
-    check_serialization(int, 3, '3')
+    check_success(int, 3, '3')
 
 
 def test_int_serialization_boolean():
-    with raises(JsonerException):
-        check_serialization(int, True, 'true')
+    check_type_error(int, True, 'true')
 
 
 def test_int_deserialization_wrong_type():
-    with raises(JsonerException):
-        from_json(int, '"3"')
+    check_type_error(int, '3', '"3"')
 
 
-def test_float_serialization():
-    check_serialization(float, 1.23, '1.23')
+def test_float_serialization_fractional():
+    check_success(float, 1.23, '1.23')
+
+
+def test_float_deserialization_whole():
+    assert float(1) == from_json(float, '1')
 
 
 # def test_decimal_serialization():
@@ -33,7 +43,7 @@ def test_float_serialization():
 
 
 def test_str_serialization():
-    check_serialization(str, 'bla', '"bla"')
+    check_success(str, 'bla', '"bla"')
 
 
 def test_str_deserialization_null_safety():
@@ -42,15 +52,15 @@ def test_str_deserialization_null_safety():
 
 
 def test_bool_serialization():
-    check_serialization(bool, True, 'true')
+    check_success(bool, True, 'true')
 
 
 def test_none_serialization():
-    check_serialization(NoneType, None, 'null')
+    check_success(NoneType, None, 'null')
 
 
 def test_date_serialization():
-    check_serialization(date, date(year=2020, month=1, day=1), '"2020-01-01"')
+    check_success(date, date(year=2020, month=1, day=1), '"2020-01-01"')
 
 
 def test_none_deserialization_wrong_value():
@@ -59,33 +69,32 @@ def test_none_deserialization_wrong_value():
 
 
 def test_list_serialization():
-    check_serialization(List[int], [2, 3], '[2, 3]')
+    check_success(List[int], [2, 3], '[2, 3]')
 
 
 def test_list_of_date_serialization():
-    check_serialization(List[date], [date(year=2020, month=1, day=2)], '["2020-01-02"]')
+    check_success(List[date], [date(year=2020, month=1, day=2)], '["2020-01-02"]')
 
 
 def test_dict_serialization():
-    check_serialization(Dict[str, date], {'key': date(year=2020, month=1, day=2)}, '{"key": "2020-01-02"}')
+    check_success(Dict[str, date], {'key': date(year=2020, month=1, day=2)}, '{"key": "2020-01-02"}')
 
 
 def test_dict_serialization_wrong_key_type():
-    with raises(JsonerException):
-        from_json(Dict[int, date], '{"2": "2020-01-02"}')
+    check_type_error(Dict[int, date], {2: date(year=2020, month=1, day=2)}, '{"2": "2020-01-02"}')
 
 
 def test_optional_serialization_none():
-    check_serialization(Optional[int], None, 'null')
+    check_success(Optional[int], None, 'null')
 
 
 def test_optional_serialization_some():
-    check_serialization(Optional[int], 123, '123')
+    check_success(Optional[int], 123, '123')
 
 
 def test_union_primitive_serialization():
-    check_serialization(Union[str, int], 'bla', '"bla"')
-    check_serialization(Union[str, int], 3, '3')
+    check_success(Union[str, int], 'bla', '"bla"')
+    check_success(Union[str, int], 3, '3')
     with raises(JsonerException):
         from_json(Union[str, int], 'true')
 
@@ -97,9 +106,8 @@ class TheClass:
 
 
 def test_class_serialization():
-    check_serialization(TheClass, TheClass('bla', 123), '{"string_field": "bla", "int_field": 123}')
+    check_success(TheClass, TheClass('bla', 123), '{"string_field": "bla", "int_field": 123}')
 
 
-def test_class_serialization_wrong_field_type():
-    with raises(JsonerException):
-        check_serialization(TheClass, TheClass('bla', 'wrong'), '{"string_field": "bla", "int_field": "wrong"}')
+def test_class_serialization_wrong_type():
+    check_type_error(TheClass, TheClass('bla', 'wrong'), '{"string_field": "bla", "int_field": "wrong"}')
