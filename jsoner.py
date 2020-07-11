@@ -125,7 +125,13 @@ class UnionSerializer:
 
     @staticmethod
     def serialize(obj, typ):
-        return obj
+        union_types = inspect.get_args(typ)
+        for union_type in union_types:
+            try:
+                return serialize(obj, union_type)
+            except JsonerException:
+                pass
+        raise JsonerException(f'Value {obj} can not be deserialized as {typ}')
 
     @staticmethod
     def deserialize(typ, json_data):

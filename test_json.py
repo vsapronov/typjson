@@ -46,9 +46,8 @@ def test_str_serialization():
     check_success(str, 'bla', '"bla"')
 
 
-def test_str_deserialization_null_safety():
-    with raises(JsonerException):
-        from_json(str, 'null')
+def test_serialization_null_safety():
+    check_type_error(str, None, 'null')
 
 
 def test_bool_serialization():
@@ -63,9 +62,8 @@ def test_date_serialization():
     check_success(date, date(year=2020, month=1, day=1), '"2020-01-01"')
 
 
-def test_none_deserialization_wrong_value():
-    with raises(JsonerException):
-        from_json(NoneType, '"bla"')
+def test_none_serialization_wrong_type():
+    check_type_error(NoneType, 'bla', '"bla"')
 
 
 def test_list_serialization():
@@ -95,8 +93,10 @@ def test_optional_serialization_some():
 def test_union_primitive_serialization():
     check_success(Union[str, int], 'bla', '"bla"')
     check_success(Union[str, int], 3, '3')
-    with raises(JsonerException):
-        from_json(Union[str, int], 'true')
+
+
+def test_union_wrong_type():
+    check_type_error(Union[str, int], True, 'true')
 
 
 @dataclass
