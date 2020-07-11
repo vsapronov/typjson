@@ -16,7 +16,7 @@ class JsonerException(Exception):
 class PrimitiveSerializer:
     @staticmethod
     def is_applicable(typ):
-        return typ == int or typ == str or typ == bool or typ == NoneType
+        return typ in [int, str, bool, NoneType]
 
     @staticmethod
     def serialize(obj, typ):
