@@ -19,16 +19,16 @@ class PrimitiveSerializer:
         return typ in [int, str, bool, NoneType]
 
     @staticmethod
-    def serialize(obj, typ):
-        if not type(obj) == typ:
-            raise JsonerException(f'Type {typ} was expected, found: {obj}')
-        return obj
+    def serialize(typ, value):
+        if not type(value) == typ:
+            raise JsonerException(f'Type {typ} was expected, found: {value}')
+        return value
 
     @staticmethod
-    def deserialize(typ, data):
-        if not type(data) == typ:
-            raise JsonerException(f'Type {typ} was expected, found: {data}')
-        return data
+    def deserialize(typ, json_value):
+        if not type(json_value) == typ:
+            raise JsonerException(f'Type {typ} was expected, found type: {type(json_value)} value: {json_value}')
+        return json_value
 
 
 class FloatSerializer:
@@ -37,16 +37,16 @@ class FloatSerializer:
         return typ == float
 
     @staticmethod
-    def serialize(obj, typ):
-        if not type(obj) == typ:
-            raise JsonerException(f'Type {typ} was expected, found: {obj}')
-        return obj
+    def serialize(typ, value):
+        if not type(value) == typ:
+            raise JsonerException(f'Type {typ} was expected, found: {value}')
+        return value
 
     @staticmethod
-    def deserialize(typ, data):
-        if type(data) not in [int, float]:
-            raise JsonerException(f'Type int or float was expected, found: {type(data)}, value: {data}')
-        return data
+    def deserialize(typ, json_value):
+        if type(json_value) not in [int, float]:
+            raise JsonerException(f'Type int or float was expected, found: {type(json_value)}, value: {json_value}')
+        return json_value
 
 
 class DateSerializer:
@@ -55,14 +55,14 @@ class DateSerializer:
         return typ == date
 
     @staticmethod
-    def serialize(obj, typ):
-        return obj.strftime("%Y-%m-%d")
+    def serialize(typ, value):
+        return value.strftime("%Y-%m-%d")
 
     @staticmethod
-    def deserialize(typ, json_data):
-        if not isinstance(json_data, str):
-            raise JsonerException(f'date should be represented as str, found {json_data}')
-        parsed_datetime = datetime.datetime.strptime(json_data, "%Y-%m-%d")
+    def deserialize(typ, json_value):
+        if not isinstance(json_value, str):
+            raise JsonerException(f'date should be represented as str, found {json_value}')
+        parsed_datetime = datetime.datetime.strptime(json_value, "%Y-%m-%d")
         return parsed_datetime.date()
 
 
@@ -72,14 +72,14 @@ class DataclassSerializer:
         return dataclasses.is_dataclass(typ)
 
     @staticmethod
-    def serialize(obj, typ):
-        return {field.name: serialize(obj.__dict__[field.name], field.type) for field in dataclasses.fields(typ)}
+    def serialize(typ, value):
+        return {field.name: serialize(value.__dict__[field.name], field.type) for field in dataclasses.fields(typ)}
 
     @staticmethod
     def deserialize(typ, json_data):
         ctor_params = {field.name: deserialize(field.type, json_data[field.name]) for field in dataclasses.fields(typ)}
-        obj = typ(**ctor_params)
-        return obj
+        value = typ(**ctor_params)
+        return value
 
 
 class ListSerializer:
@@ -88,9 +88,9 @@ class ListSerializer:
         return inspect.is_generic_type(typ) and inspect.get_origin(typ) == list
 
     @staticmethod
-    def serialize(obj, typ):
+    def serialize(typ, value):
         item_type, = inspect.get_args(typ)
-        return [serialize(item, item_type) for item in obj]
+        return [serialize(item, item_type) for item in value]
 
     @staticmethod
     def deserialize(typ, json_data):
@@ -104,8 +104,8 @@ class UntypedListSerializer:
         return typ == list
 
     @staticmethod
-    def serialize(obj, typ):
-        return [serialize(item, None) for item in obj]
+    def serialize(typ, value):
+        return [serialize(item, None) for item in value]
 
 
 class UntypedDictSerializer:
@@ -114,8 +114,8 @@ class UntypedDictSerializer:
         return typ == dict
 
     @staticmethod
-    def serialize(obj, typ):
-        return {item_key: serialize(item_value, None) for item_key, item_value in obj.items()}
+    def serialize(typ, value):
+        return {item_key: serialize(item_value, None) for item_key, item_value in value.items()}
 
 
 class DictSerializer:
@@ -124,11 +124,11 @@ class DictSerializer:
         return inspect.is_generic_type(typ) and inspect.get_origin(typ) == dict
 
     @staticmethod
-    def serialize(obj, typ):
+    def serialize(typ, value):
         key_type, value_type = inspect.get_args(typ)
         if key_type != str:
             raise JsonerException(f'Dict key type {key_type} is not supported for JSON serializatio, key should be of type str')
-        return {key: serialize(value, value_type) for (key, value) in obj.items()}
+        return {key: serialize(value, value_type) for (key, value) in value.items()}
 
     @staticmethod
     def deserialize(typ, json_data):
@@ -144,14 +144,14 @@ class UnionSerializer:
         return inspect.is_union_type(typ)
 
     @staticmethod
-    def serialize(obj, typ):
+    def serialize(typ, value):
         union_types = inspect.get_args(typ)
         for union_type in union_types:
             try:
-                return serialize(obj, union_type)
+                return serialize(value, union_type)
             except JsonerException:
                 pass
-        raise JsonerException(f'Value {obj} can not be deserialized as {typ}')
+        raise JsonerException(f'Value {value} can not be deserialized as {typ}')
 
     @staticmethod
     def deserialize(typ, json_data):
@@ -199,14 +199,14 @@ def from_json(typ, json_str):
     return deserialize(typ, json_data)
 
 
-def serialize(data, typ=None):
-    typ = typ if typ is not None else type(data)
+def serialize(value, typ=None):
+    typ = typ if typ is not None else type(value)
     for serializer in serializers:
         if serializer.is_applicable(typ):
-            return serializer.serialize(data, typ)
+            return serializer.serialize(typ, value)
     raise JsonerException(f'Unsupported type {typ}')
 
 
-def to_json(data, typ=None):
-    json_data = serialize(data, typ)
+def to_json(value, typ=None):
+    json_data = serialize(value, typ)
     return json.dumps(json_data)
