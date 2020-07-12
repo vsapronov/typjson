@@ -6,9 +6,9 @@ from decimal import *
 from datetime import *
 
 
-def check_success(typ, data, json):
-    assert to_json(data, typ) == json
-    assert from_json(typ, json) == data
+def check_success(typ, data, json_str):
+    assert to_json(data, typ) == json_str
+    assert from_json(typ, json_str) == data
 
 
 def check_type_error(typ, data, json_str):
