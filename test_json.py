@@ -114,5 +114,10 @@ def test_class_serialization_wrong_type():
 
 
 def test_untyped_list():
-    json_str = to_json([date(year=2020, month=1, day=2)])
-    assert json_str == '["2020-01-02"]'
+    json = to_json([date(year=2020, month=1, day=2)])
+    assert json == '["2020-01-02"]'
+
+
+def test_untyped_dict():
+    json = to_json({"key": date(year=2020, month=1, day=2)})
+    assert json == '{"key": "2020-01-02"}'

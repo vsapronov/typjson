@@ -108,6 +108,16 @@ class UntypedListSerializer:
         return [serialize(item, None) for item in obj]
 
 
+class UntypedDictSerializer:
+    @staticmethod
+    def is_applicable(typ):
+        return typ == dict
+
+    @staticmethod
+    def serialize(obj, typ):
+        return {item_key: serialize(item_value, None) for item_key, item_value in obj.items()}
+
+
 class DictSerializer:
     @staticmethod
     def is_applicable(typ):
@@ -162,7 +172,8 @@ serializers = [
     DictSerializer,
     UnionSerializer,
     DataclassSerializer,
-    UntypedListSerializer
+    UntypedListSerializer,
+    UntypedDictSerializer
 ]
 
 deserializers = [
