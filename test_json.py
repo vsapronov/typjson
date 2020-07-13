@@ -4,6 +4,7 @@ from dataclasses import *
 from pytest import *
 from decimal import *
 from datetime import *
+from uuid import *
 
 
 def check_success(typ, data, json_str):
@@ -58,12 +59,20 @@ def test_none():
     check_success(NoneType, None, 'null')
 
 
+def test_none_wrong_type():
+    check_type_error(NoneType, 'bla', '"bla"')
+
+
 def test_date():
     check_success(date, date(year=2020, month=1, day=1), '"2020-01-01"')
 
 
-def test_none_wrong_type():
-    check_type_error(NoneType, 'bla', '"bla"')
+def test_date_wrong_type():
+    check_type_error(date, 3, '3')
+
+
+def test_uuid():
+    check_success(UUID, UUID('bd65600d-8669-4903-8a14-af88203add38'), '"bd65600d-8669-4903-8a14-af88203add38"')
 
 
 def test_generic_list():

@@ -5,6 +5,7 @@ import dataclasses
 import datetime
 from datetime import date
 from decimal import *
+from uuid import *
 
 
 NoneType = type(None)
@@ -53,6 +54,8 @@ def encode_decimal(typ, value):
 def encode_date(typ, value):
     if typ != date:
         return UnsupportedType()
+    if not isinstance(value, date):
+        raise JsonerException(f'date type expected, found {type(value)}, value: {value}')
     return value.strftime("%Y-%m-%d")
 
 
@@ -60,9 +63,25 @@ def decode_date(typ, json_value):
     if typ != date:
         return UnsupportedType()
     if not isinstance(json_value, str):
-        raise JsonerException(f'date should be represented as str, found {json_value}')
+        raise JsonerException(f'date should be represented as str, found {type(json_value)}, value: {json_value}')
     parsed_datetime = datetime.datetime.strptime(json_value, "%Y-%m-%d")
     return parsed_datetime.date()
+
+
+def encode_uuid(typ, value):
+    if typ != UUID:
+        return UnsupportedType()
+    if not isinstance(value, UUID):
+        raise JsonerException(f'UUID type expected found: {type(value)}, value: {value}')
+    return str(value)
+
+
+def decode_uuid(typ, json_value):
+    if typ != UUID:
+        return UnsupportedType()
+    if not isinstance(json_value, str):
+        raise JsonerException(f'UUID should be represented as str, found {type(json_value)}, value: {json_value}')
+    return UUID(json_value)
 
 
 def encode_dataclass(typ, value):
@@ -151,6 +170,7 @@ encoders = [
     encode_primitive,
     encode_decimal,
     encode_date,
+    encode_uuid,
     encode_generic_list,
     encode_generic_dict,
     encode_union,
@@ -163,6 +183,7 @@ decoders = [
     decode_primitive,
     decode_float,
     decode_date,
+    decode_uuid,
     decode_generic_list,
     decode_generic_dict,
     decode_union,
