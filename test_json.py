@@ -114,10 +114,10 @@ def test_dataclass_wrong_field_type():
 
 
 def test_untyped_list():
-    json = dumps([date(year=2020, month=1, day=2)])
-    assert json == '["2020-01-02"]'
+    json = dumps([date(year=2020, month=1, day=2), 2])
+    assert json == '["2020-01-02", 2]'
 
 
 def test_untyped_dict():
-    json = dumps({"key": date(year=2020, month=1, day=2)})
-    assert json == '{"key": "2020-01-02"}'
+    json = dumps({'key1': date(year=2020, month=1, day=2), 'key2': 'bla'})
+    assert json == '{"key1": "2020-01-02", "key2": "bla"}'
