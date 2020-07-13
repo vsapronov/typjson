@@ -4,6 +4,7 @@ import typing_inspect as inspect
 import dataclasses
 import datetime
 from datetime import date
+from decimal import *
 
 
 NoneType = type(None)
@@ -26,7 +27,7 @@ def encode_primitive(typ, value):
 
 
 def decode_primitive(typ, json_value):
-    if typ not in [int, str, bool, NoneType]:
+    if typ not in [int, Decimal, str, bool, NoneType]:
         return UnsupportedType()
     if not type(json_value) == typ:
         raise JsonerException(f'Type {typ} was expected, found type: {type(json_value)} value: {json_value}')
@@ -36,9 +37,17 @@ def decode_primitive(typ, json_value):
 def decode_float(typ, json_value):
     if typ != float:
         return UnsupportedType()
-    if type(json_value) not in [int, float]:
-        raise JsonerException(f'Type int or float was expected, found: {type(json_value)}, value: {json_value}')
-    return json_value
+    if type(json_value) not in [int, float, Decimal]:
+        raise JsonerException(f'Numeric type was expected, found: {type(json_value)}, value: {json_value}')
+    return float(json_value)
+
+
+def encode_decimal(typ, value):
+    if typ != Decimal:
+        return UnsupportedType()
+    if type(value) != typ:
+        raise JsonerException(f'Type Decimal was expected, found: {type(value)}, value: {value}')
+    return float(value)
 
 
 def encode_date(typ, value):
@@ -140,6 +149,7 @@ def decode_union(typ, json_value):
 
 encoders = [
     encode_primitive,
+    encode_decimal,
     encode_date,
     encode_generic_list,
     encode_generic_dict,
@@ -169,7 +179,7 @@ def decode(typ, json_value):
 
 
 def loads(typ, json_str):
-    json_value = json.loads(json_str)
+    json_value = json.loads(json_str, parse_float=Decimal)
     return decode(typ, json_value)
 
 

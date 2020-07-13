@@ -38,6 +38,10 @@ def test_float_int_json():
     assert float(1) == loads(float, '1')
 
 
+def test_decimal():
+    check_success(Decimal, Decimal('1.23'), '1.23')
+
+
 def test_str():
     check_success(str, 'bla', '"bla"')
 
