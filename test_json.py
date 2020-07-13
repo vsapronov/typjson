@@ -7,15 +7,15 @@ from datetime import *
 
 
 def check_success(typ, data, json_str):
-    assert to_json(data, typ) == json_str
-    assert from_json(typ, json_str) == data
+    assert dumps(data, typ) == json_str
+    assert loads(typ, json_str) == data
 
 
 def check_type_error(typ, data, json_str):
     with raises(JsonerException):
-        to_json(data, typ)
+        dumps(data, typ)
     with raises(JsonerException):
-        from_json(typ, json_str)
+        loads(typ, json_str)
 
 
 def test_int_serialization():
@@ -35,7 +35,7 @@ def test_float_serialization_fractional():
 
 
 def test_float_deserialization_whole():
-    assert float(1) == from_json(float, '1')
+    assert float(1) == loads(float, '1')
 
 
 # def test_decimal_serialization():
@@ -114,10 +114,10 @@ def test_class_serialization_wrong_type():
 
 
 def test_untyped_list():
-    json = to_json([date(year=2020, month=1, day=2)])
+    json = dumps([date(year=2020, month=1, day=2)])
     assert json == '["2020-01-02"]'
 
 
 def test_untyped_dict():
-    json = to_json({"key": date(year=2020, month=1, day=2)})
+    json = dumps({"key": date(year=2020, month=1, day=2)})
     assert json == '{"key": "2020-01-02"}'
