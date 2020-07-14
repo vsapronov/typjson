@@ -8,13 +8,21 @@ jobs:
     steps:
       - checkout
       - run:
-          name: check versions
+          name: Check versions
           command: |
             python --version
             pip --version
       - run:
-          name: install dependencies
+          name: Install dependencies
           command: sudo pip install -r requirements.txt
+      - run:
+          name: Run unit tests
+          command: |
+            mkdir -p /tmp/test-results
+            pytest --junitxml=/tmp/test-results/out_report.xml
+      - store_test_results:
+          path: /tmp/test-results
+
 
 workflows:
   test:
