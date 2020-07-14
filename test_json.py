@@ -130,6 +130,3 @@ def test_untyped_list():
 def test_untyped_dict():
     json = dumps({'key1': date(year=2020, month=1, day=2), 'key2': 'bla'})
     assert json == '{"key1": "2020-01-02", "key2": "bla"}'
-
-def test_failure():
-    assert True == False
