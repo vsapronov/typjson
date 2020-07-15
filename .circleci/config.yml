@@ -25,10 +25,11 @@ jobs:
       - run: poetry build
       - run:
           name: poetry publish
-          command: poetry publish --username "" --password ""
+          command: poetry publish --username "__token__" --password "${PYPI_TOKEN}"
 
 
 workflows:
   test:
     jobs:
-      - test
+      - test:
+          context: pypi
