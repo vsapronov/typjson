@@ -55,7 +55,7 @@ def encode_date(typ, value):
         return UnsupportedType()
     if not isinstance(value, date):
         raise JsonerException(f'date type expected, found {type(value)}, value: {value}')
-    return value.strftime("%Y-%m-%d")
+    return value.isoformat()
 
 
 def decode_date(typ, json_value):
