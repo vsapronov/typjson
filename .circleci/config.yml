@@ -13,9 +13,6 @@ jobs:
             python --version
             pip --version
             pip install poetry
-      - run:
-          name: Install dependencies
-          command: sudo pip install -r requirements.txt
       - run: poetry install
       - run:
           name: poetry run pytest
