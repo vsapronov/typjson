@@ -13,6 +13,7 @@ jobs:
             python --version
             pip --version
             pip install poetry
+            poetry --version
       - run: poetry install
       - run:
           name: poetry run pytest
@@ -21,6 +22,10 @@ jobs:
             poetry run pytest -o junit_family=xunit2 --junitxml=/tmp/test-results/out_report.xml
       - store_test_results:
           path: /tmp/test-results
+      - run: poetry build
+      - run:
+          name: poetry publish
+          command: poetry publish --username "" --password ""
 
 
 workflows:
