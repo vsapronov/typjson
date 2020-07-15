@@ -67,6 +67,10 @@ def test_date():
     check_success(date, date(year=2020, month=1, day=1), '"2020-01-01"')
 
 
+def test_datetime():
+    check_success(datetime, datetime(year=2020, month=1, day=1, hour=17, minute=45, second=55, tzinfo=timezone.utc), '"2020-01-01T17:45:55+00:00"')
+
+
 def test_date_wrong_type():
     check_type_error(date, 3, '3')
 

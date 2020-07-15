@@ -2,8 +2,7 @@ import json
 from typing import *
 import typing_inspect as inspect  # type: ignore
 import dataclasses
-import datetime
-from datetime import date
+from datetime import date, datetime
 from decimal import *
 from uuid import *
 
@@ -64,8 +63,25 @@ def decode_date(typ, json_value):
         return UnsupportedType()
     if not isinstance(json_value, str):
         raise JsonerException(f'date should be represented as str, found {type(json_value)}, value: {json_value}')
-    parsed_datetime = datetime.datetime.strptime(json_value, "%Y-%m-%d")
+    parsed_datetime = datetime.strptime(json_value, "%Y-%m-%d")
     return parsed_datetime.date()
+
+
+def encode_datetime(typ, value):
+    if typ != datetime:
+        return UnsupportedType()
+    if not isinstance(value, datetime):
+        raise JsonerException(f'datetime type expected, found {type(value)}, value: {value}')
+    return value.isoformat()
+
+
+def decode_datetime(typ, json_value):
+    if typ != datetime:
+        return UnsupportedType()
+    if not isinstance(json_value, str):
+        raise JsonerException(f'datetime should be represented as str, found {type(json_value)}, value: {json_value}')
+    parsed = datetime.strptime(json_value, "%Y-%m-%dT%H:%M:%S%z")
+    return parsed
 
 
 def encode_uuid(typ, value):
@@ -170,6 +186,7 @@ encoders = [
     encode_primitive,
     encode_decimal,
     encode_date,
+    encode_datetime,
     encode_uuid,
     encode_generic_list,
     encode_generic_dict,
@@ -183,6 +200,7 @@ decoders = [
     decode_primitive,
     decode_float,
     decode_date,
+    decode_datetime,
     decode_uuid,
     decode_generic_list,
     decode_generic_dict,
