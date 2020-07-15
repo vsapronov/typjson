@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "typjson"
+version = "0.1.0"
+description = "Type-safe JSON (de)serialization"
+authors = ["Vladimir Sapronov <vladimir.sapronov@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.7",
+]
+packages = [
+    { include = "typjson" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+typing_inspect = "^0.6.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

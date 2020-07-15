@@ -1,4 +1,4 @@
-from jsoner import *
+from typjson.jsoner import *
 from typing import *
 from dataclasses import *
 from pytest import *

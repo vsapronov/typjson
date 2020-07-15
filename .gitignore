@@ -1,1 +1,5 @@
 .idea/
+__pycache__/
+dist/
+.pytest_cache/
+typjson.egg-info/

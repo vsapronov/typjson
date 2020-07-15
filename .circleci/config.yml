@@ -12,14 +12,16 @@ jobs:
           command: |
             python --version
             pip --version
+            pip install poetry
       - run:
           name: Install dependencies
           command: sudo pip install -r requirements.txt
+      - run: poetry install
       - run:
-          name: Run unit tests
+          name: poetry run pytest
           command: |
             mkdir -p /tmp/test-results
-            pytest --junitxml=/tmp/test-results/out_report.xml
+            poetry run pytest -o junit_family=xunit2 --junitxml=/tmp/test-results/out_report.xml
       - store_test_results:
           path: /tmp/test-results
 
