@@ -15,6 +15,7 @@ jobs:
             pip install poetry
             poetry --version
       - run: poetry install
+      - run: poetry version 0.0.<<pipeline.number>>
       - run:
           name: poetry run pytest
           command: |

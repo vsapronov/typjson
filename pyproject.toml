@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "typjson"
-version = "0.1.0"
+version = "0.0.0"
 description = "Type-safe JSON (de)serialization"
 authors = ["Vladimir Sapronov <vladimir.sapronov@gmail.com>"]
 license = "MIT"
