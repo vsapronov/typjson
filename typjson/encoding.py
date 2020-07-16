@@ -1,4 +1,3 @@
-import json
 from typing import *
 import typing_inspect as inspect  # type: ignore
 import dataclasses
@@ -6,9 +5,6 @@ from datetime import date, datetime, time
 from decimal import *
 from uuid import *
 from typjson.typing import *
-
-
-NoneType = type(None)
 
 
 class UnsupportedType:
@@ -260,11 +256,6 @@ def decode(typ: Type[T], json_value: Any) -> T:
     raise JsonerException(f'Unsupported type {typ}')
 
 
-def loads(typ: Type[T], json_str: str) -> T:
-    json_value = json.loads(json_str, parse_float=Decimal)
-    return decode(typ, json_value)
-
-
 def encode(value: T, typ: Optional[Type[T]] = None):
     typ = typ if typ is not None else type(value)
     for encoder in encoders:
@@ -272,9 +263,3 @@ def encode(value: T, typ: Optional[Type[T]] = None):
         if not isinstance(result, UnsupportedType):
             return result
     raise JsonerException(f'Unsupported type {typ}')
-
-
-def dumps(value: T, typ: Optional[Type[T]] = None, indent: int = None) -> str:
-    json_value = encode(value, typ)
-    json_str = json.dumps(json_value, indent=indent)
-    return json_str
