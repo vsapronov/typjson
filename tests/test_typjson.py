@@ -1,4 +1,5 @@
 from typjson.jsoner import *
+from typjson.typing import *
 from typing import *
 from dataclasses import *
 from pytest import *
@@ -45,6 +46,10 @@ def test_decimal():
 
 def test_str():
     check_success(str, 'bla', '"bla"')
+
+
+def test_char():
+    check_success(char, char('x'), '"x"')
 
 
 def test_null_safety():

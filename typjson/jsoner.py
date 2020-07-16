@@ -5,6 +5,7 @@ import dataclasses
 from datetime import date, datetime, time
 from decimal import *
 from uuid import *
+from typjson.typing import *
 
 
 NoneType = type(None)
@@ -31,6 +32,24 @@ def decode_primitive(typ, json_value):
         return UnsupportedType()
     if not type(json_value) == typ:
         raise JsonerException(f'Type {typ} was expected, found type: {type(json_value)} value: {json_value}')
+    return json_value
+
+
+def encode_char(typ, value):
+    if typ != char:
+        return UnsupportedType()
+    if not type(value) == char:
+        raise JsonerException(f'Type {typ} was expected, found: {type(value)}, value: {value}')
+    return str(value)
+
+
+def decode_char(typ, json_value):
+    if typ != char:
+        return UnsupportedType()
+    if not type(json_value) == str:
+        raise JsonerException(f'char should be represented as str, found {type(json_value)}, value: {json_value}')
+    if len(json_value) != 1:
+        raise JsonerException(f'char should be represented with str length 1, found: {json_value}')
     return json_value
 
 
@@ -201,6 +220,7 @@ def decode_union(typ, json_value):
 
 encoders = [
     encode_primitive,
+    encode_char,
     encode_decimal,
     encode_date,
     encode_datetime,
@@ -216,6 +236,7 @@ encoders = [
 
 decoders = [
     decode_primitive,
+    decode_char,
     decode_float,
     decode_date,
     decode_datetime,
