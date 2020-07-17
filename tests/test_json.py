@@ -149,6 +149,11 @@ def test_untyped_dict():
     assert json == '{"key1": "2020-01-02", "key2": "bla"}'
 
 
+def test_untyped_tuple():
+    json = dumps((date(year=2020, month=1, day=2), 2))
+    assert json == '["2020-01-02", 2]'
+
+
 def encode_str_custom(encoder, typ, value):
     if typ != str:
         return UnsupportedType()

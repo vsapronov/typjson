@@ -172,6 +172,14 @@ def encode_dict(encoder, typ, value):
     return {item_key: encoder.encode(item_value, None) for item_key, item_value in value.items()}
 
 
+def encode_tuple(encoder, typ, value):
+    if typ != tuple:
+        return UnsupportedType()
+    if type(value) != tuple:
+        raise JsonerException(f'Expected tuple, found {type(value)}, value: {value}')
+    return tuple([encoder.encode(item, typ=None) for item in value])
+
+
 def encode_generic_dict(encoder, typ, value):
     if not (inspect.is_generic_type(typ) and inspect.get_origin(typ) == dict):
         return UnsupportedType()

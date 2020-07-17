@@ -29,13 +29,14 @@ json_decoders = [
     decode_generic_dict,
     decode_generic_tuple,
     decode_union,
-    decode_dataclass
+    decode_dataclass,
 ]
 
 
 json_weak_encoders = [
     encode_list,
-    encode_dict
+    encode_dict,
+    encode_tuple,
 ]
 
 
