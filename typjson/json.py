@@ -1,8 +1,6 @@
 from typjson.encoding import *
 import json
 
-T = TypeVar('T')
-
 
 json_encoders = [
     encode_primitive,
@@ -39,23 +37,33 @@ json_weak_encoders = [
 ]
 
 
+M = TypeVar('M')
+K = TypeVar('K')
+
+
+EncodeFunc = Callable[[Decoder, Type[K], K], Any]
+DecodeFunc = Callable[[Decoder, Type[K], Any], K]
+
+
 def loads(
-        typ: Type[T],
+        typ: Type[M],
         json_str: str,
-        ) -> T:
+        decoders: List[DecodeFunc] = [],
+        ) -> M:
     json_value = json.loads(json_str, parse_float=Decimal)
-    return decode(typ, json_value, decoders=json_decoders)
+    return decode(typ, json_value, decoders=decoders+json_decoders)
 
 
 def dumps(
-        value: T,
-        typ: Optional[Type[T]] = None,
-        allow_weak_types=True,
+        value: M,
+        typ: Optional[Type[M]] = None,
+        allow_weak_types: bool = True,
+        encoders: List[EncodeFunc] = [],
         indent: int = None,
         ) -> str:
     if not allow_weak_types and typ is None:
-        raise UnsupportedType('type is not provided and allow_weak_types is set to False')
-    all_encoders = json_encoders
+        raise JsonerException('type is not provided and allow_weak_types is set to False')
+    all_encoders = encoders+json_encoders
     if allow_weak_types:
         all_encoders += json_weak_encoders
     json_value = encode(value, typ, encoders=all_encoders)

@@ -143,3 +143,24 @@ def test_untyped_list():
 def test_untyped_dict():
     json = dumps({'key1': date(year=2020, month=1, day=2), 'key2': 'bla'})
     assert json == '{"key1": "2020-01-02", "key2": "bla"}'
+
+
+def encode_str_custom(encoder, typ, value):
+    if typ != str:
+        return UnsupportedType()
+    return 'bla-bla '+value
+
+
+def decode_str_custom(decoder, typ, value):
+    if typ != str:
+        return UnsupportedType()
+    if value.startswith('bla-bla '):
+        return value[len('bla-bla '):]
+    return value
+
+
+def test_str_custom():
+    data = 'something'
+    json_str = '"bla-bla something"'
+    assert dumps(data, str, encoders=[encode_str_custom]) == json_str
+    assert loads(str, json_str, decoders=[decode_str_custom]) == data
