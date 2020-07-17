@@ -12,6 +12,7 @@ json_encoders = [
     encode_uuid,
     encode_generic_list,
     encode_generic_dict,
+    encode_generic_tuple,
     encode_union,
     encode_dataclass,
 ]
@@ -26,6 +27,7 @@ json_decoders = [
     decode_uuid,
     decode_generic_list,
     decode_generic_dict,
+    decode_generic_tuple,
     decode_union,
     decode_dataclass
 ]

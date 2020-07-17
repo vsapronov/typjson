@@ -190,6 +190,28 @@ def decode_generic_dict(decoder, typ, json_value):
     return {key: decoder.decode(value_type, value) for (key, value) in json_value.items()}
 
 
+def encode_generic_tuple(encoder, typ, value):
+    if not inspect.is_tuple_type(typ):
+        return UnsupportedType()
+    if type(value) != tuple:
+        raise JsonerException(f'Expected tuple, found {type(value)}, value: {value}')
+    items_types = inspect.get_args(typ)
+    if len(items_types) != len(value):
+        raise JsonerException(f'Expected tuple of size: {len(items_types)}, found tuple of size: {len(value)}, value: {value}')
+    return tuple(map(lambda item, item_type: encoder.encode(item, item_type), value, items_types))
+
+
+def decode_generic_tuple(decoder, typ, json_value):
+    if not inspect.is_tuple_type(typ):
+        return UnsupportedType()
+    if type(json_value) != list:
+        raise JsonerException(f'Expected list, found {type(json_value)}, value: {json_value}')
+    items_types = inspect.get_args(typ)
+    if len(items_types) != len(json_value):
+        raise JsonerException(f'Expected list of size: {len(items_types)}, found tuple of size: {len(json_value)}, value: {json_value}')
+    return tuple(map(lambda item, item_type: decoder.decode(item_type, item), json_value, items_types))
+
+
 def encode_union(encoder, typ, value):
     if not inspect.is_union_type(typ):
         return UnsupportedType()

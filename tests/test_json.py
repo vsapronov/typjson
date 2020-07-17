@@ -104,6 +104,10 @@ def test_generic_dict_wrong_key_type():
     check_type_error(Dict[int, date], {2: date(year=2020, month=1, day=2)}, '{"2": "2020-01-02"}')
 
 
+def test_generic_tuple():
+    check_success(Tuple[str, int], ('bla', 3), '["bla", 3]')
+
+
 def test_optional_none():
     check_success(Optional[int], None, 'null')
 
