@@ -108,6 +108,10 @@ def test_generic_tuple():
     check_success(Tuple[str, int], ('bla', 3), '["bla", 3]')
 
 
+def test_generic_set():
+    check_success(Set[date], set([date(year=2020, month=1, day=2)]), '["2020-01-02"]')
+
+
 def test_optional_none():
     check_success(Optional[int], None, 'null')
 
@@ -152,6 +156,11 @@ def test_untyped_dict():
 def test_untyped_tuple():
     json = dumps((date(year=2020, month=1, day=2), 2))
     assert json == '["2020-01-02", 2]'
+
+
+def test_untyped_set():
+    json = dumps(set([date(year=2020, month=1, day=2)]))
+    assert json == '["2020-01-02"]'
 
 
 def encode_str_custom(encoder, typ, value):

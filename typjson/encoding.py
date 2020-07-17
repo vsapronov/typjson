@@ -160,26 +160,6 @@ def decode_generic_list(decoder, typ, json_value):
     return [decoder.decode(item_type, item) for item in json_value]
 
 
-def encode_list(encoder, typ, value):
-    if typ != list:
-        return UnsupportedType()
-    return [encoder.encode(item, None) for item in value]
-
-
-def encode_dict(encoder, typ, value):
-    if typ != dict:
-        return UnsupportedType()
-    return {item_key: encoder.encode(item_value, None) for item_key, item_value in value.items()}
-
-
-def encode_tuple(encoder, typ, value):
-    if typ != tuple:
-        return UnsupportedType()
-    if type(value) != tuple:
-        raise JsonerException(f'Expected tuple, found {type(value)}, value: {value}')
-    return tuple([encoder.encode(item, typ=None) for item in value])
-
-
 def encode_generic_dict(encoder, typ, value):
     if not (inspect.is_generic_type(typ) and inspect.get_origin(typ) == dict):
         return UnsupportedType()
@@ -220,6 +200,22 @@ def decode_generic_tuple(decoder, typ, json_value):
     return tuple(map(lambda item, item_type: decoder.decode(item_type, item), json_value, items_types))
 
 
+def encode_generic_set(encoder, typ, value):
+    if not (inspect.is_generic_type(typ) and inspect.get_origin(typ) == set):
+        return UnsupportedType()
+    if type(value) != set:
+        raise JsonerException(f'Expected set, found {type(value)}, value: {value}')
+    item_type, = inspect.get_args(typ)
+    return [encoder.encode(item, item_type) for item in value]
+
+
+def decode_generic_set(decoder, typ, json_value):
+    if not (inspect.is_generic_type(typ) and inspect.get_origin(typ) == set):
+        return UnsupportedType()
+    item_type = inspect.get_args(typ)[0]
+    return set([decoder.decode(item_type, item) for item in json_value])
+
+
 def encode_union(encoder, typ, value):
     if not inspect.is_union_type(typ):
         return UnsupportedType()
@@ -242,6 +238,32 @@ def decode_union(decoder, typ, json_value):
         except JsonerException:
             pass
     raise JsonerException(f'Value {json_value} can not be deserialized as {typ}')
+
+
+def encode_list(encoder, typ, value):
+    if typ != list:
+        return UnsupportedType()
+    return [encoder.encode(item, typ=None) for item in value]
+
+
+def encode_dict(encoder, typ, value):
+    if typ != dict:
+        return UnsupportedType()
+    return {item_key: encoder.encode(item_value, typ=None) for item_key, item_value in value.items()}
+
+
+def encode_tuple(encoder, typ, value):
+    if typ != tuple:
+        return UnsupportedType()
+    if type(value) != tuple:
+        raise JsonerException(f'Expected tuple, found {type(value)}, value: {value}')
+    return [encoder.encode(item, typ=None) for item in value]
+
+
+def encode_set(encoder, typ, value):
+    if typ != set:
+        return UnsupportedType()
+    return [encoder.encode(item, typ=None) for item in value]
 
 
 T = TypeVar('T')

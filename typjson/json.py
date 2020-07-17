@@ -13,6 +13,7 @@ json_encoders = [
     encode_generic_list,
     encode_generic_dict,
     encode_generic_tuple,
+    encode_generic_set,
     encode_union,
     encode_dataclass,
 ]
@@ -28,6 +29,7 @@ json_decoders = [
     decode_generic_list,
     decode_generic_dict,
     decode_generic_tuple,
+    decode_generic_set,
     decode_union,
     decode_dataclass,
 ]
@@ -37,6 +39,7 @@ json_weak_encoders = [
     encode_list,
     encode_dict,
     encode_tuple,
+    encode_set,
 ]
 
 
