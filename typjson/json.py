@@ -49,8 +49,8 @@ M = TypeVar('M')
 K = TypeVar('K')
 
 
-EncodeFunc = Callable[[Decoder, Type[K], K], Any]
-DecodeFunc = Callable[[Decoder, Type[K], Any], K]
+EncodeFunc = Callable[[Decoder, Type[K], K], Union[Any, UnsupportedType]]
+DecodeFunc = Callable[[Decoder, Type[K], Any], Union[K, UnsupportedType]]
 
 
 def loads(
