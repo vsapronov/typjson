@@ -240,6 +240,18 @@ def decode_union(decoder, typ, json_value):
     raise JsonerException(f'Value {json_value} can not be deserialized as {typ}')
 
 
+def encode_any(encoder, typ, value):
+    if typ != Any:
+        return UnsupportedType()
+    return encoder.encode(value, typ=type(value))
+
+
+def decode_any(decoder, typ, json_value):
+    if typ != Any:
+        return UnsupportedType()
+    return decoder.decode(type(json_value), json_value)
+
+
 def encode_list(encoder, typ, value):
     if typ != list:
         return UnsupportedType()

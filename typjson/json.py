@@ -16,6 +16,7 @@ json_encoders = [
     encode_generic_set,
     encode_union,
     encode_dataclass,
+    encode_any,
 ]
 
 json_decoders = [
@@ -32,6 +33,7 @@ json_decoders = [
     decode_generic_set,
     decode_union,
     decode_dataclass,
+    decode_any,
 ]
 
 

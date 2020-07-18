@@ -143,6 +143,10 @@ def test_dataclass_wrong_field_type():
     check_type_error(TheClass, TheClass('bla', 'wrong'), '{"string_field": "bla", "int_field": "wrong"}')
 
 
+def test_any():
+    check_success(Any, 'bla', '"bla"')
+
+
 def test_untyped_list():
     json = dumps([date(year=2020, month=1, day=2), 2])
     assert json == '["2020-01-02", 2]'
