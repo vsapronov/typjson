@@ -1,3 +1,4 @@
+from typing import IO
 from typjson.encoding import *
 import json
 
@@ -36,7 +37,6 @@ json_decoders = [
     decode_any,
 ]
 
-
 json_weak_encoders = [
     encode_list,
     encode_dict,
@@ -44,10 +44,8 @@ json_weak_encoders = [
     encode_set,
 ]
 
-
 M = TypeVar('M')
 K = TypeVar('K')
-
 
 EncodeFunc = Callable[[Decoder, Type[K], K], Union[Any, UnsupportedType]]
 DecodeFunc = Callable[[Decoder, Type[K], Any], Union[K, UnsupportedType]]
@@ -67,7 +65,7 @@ def dumps(
         typ: Optional[Type[M]] = None,
         allow_weak_types: bool = True,
         encoders: List[EncodeFunc] = [],
-        indent: int = None,
+        indent: Optional[int] = None,
         ) -> str:
     if not allow_weak_types and typ is None:
         raise JsonerException('type is not provided and allow_weak_types is set to False')
@@ -75,5 +73,30 @@ def dumps(
     if allow_weak_types:
         all_encoders += json_weak_encoders
     json_value = encode(value, typ, encoders=all_encoders)
-    json_str = json.dumps(json_value, indent=indent)
-    return json_str
+    return json.dumps(json_value, indent=indent)
+
+
+def load(
+        fp: IO[str],
+        typ: Type[M],
+        decoders: List[DecodeFunc] = [],
+        ) -> M:
+    json_value = json.load(fp, parse_float=Decimal)
+    return decode(typ, json_value, decoders=decoders+json_decoders)
+
+
+def dump(
+        fp: IO[str],
+        value: M,
+        typ: Optional[Type[M]] = None,
+        allow_weak_types: bool = True,
+        encoders: List[EncodeFunc] = [],
+        indent: Optional[int] = None,
+        ):
+    if not allow_weak_types and typ is None:
+        raise JsonerException('type is not provided and allow_weak_types is set to False')
+    all_encoders = encoders+json_encoders
+    if allow_weak_types:
+        all_encoders += json_weak_encoders
+    json_value = encode(value, typ, encoders=all_encoders)
+    return json.dump(json_value, fp, indent=indent)

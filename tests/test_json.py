@@ -186,3 +186,12 @@ def test_str_custom():
     json_str = '"bla-bla something"'
     assert dumps(data, str, encoders=[encode_str_custom]) == json_str
     assert loads(str, json_str, decoders=[decode_str_custom]) == data
+
+
+def test_load_dump():
+    data_before = TheClass('bla', 123)
+    with open('temp', 'w') as fp:
+        dump(fp, data_before, TheClass)
+    with open('temp', 'r') as fp:
+        data_after = load(fp, TheClass)
+    assert data_before == data_after
