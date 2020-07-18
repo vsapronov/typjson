@@ -1,4 +1,4 @@
-from typjson.typing import *
+from typ.typing import *
 from pytest import *
 
 

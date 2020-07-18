@@ -11,7 +11,7 @@ classifiers = [
     "Programming Language :: Python :: 3.7",
 ]
 packages = [
-    { include = "typjson" },
+    { include = "typ" },
 ]
 
 [tool.poetry.dependencies]

@@ -4,7 +4,7 @@ import dataclasses
 from datetime import date, datetime, time
 from decimal import *
 from uuid import *
-from typjson.typing import *
+from typ.typing import *
 
 
 class UnsupportedType:

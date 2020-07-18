@@ -1,5 +1,5 @@
-from typjson.json import *
-from typjson.typing import *
+from typ.json import *
+from typ.typing import *
 from typing import *
 from dataclasses import *
 from pytest import *

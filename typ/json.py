@@ -1,5 +1,5 @@
 from typing import IO
-from typjson.encoding import *
+from typ.encoding import *
 import json
 
 
