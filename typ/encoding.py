@@ -14,7 +14,7 @@ class UnsupportedType:
 Unsupported = UnsupportedType()
 
 
-class JsonerException(Exception):
+class JsonError(Exception):
     pass
 
 
@@ -22,10 +22,10 @@ def check_type(expected_type: Union[Type, List[Type]], value: Any):
     actual_type = type(value)
     if type(expected_type) == list:
         if not type(value) in expected_type:
-            raise JsonerException(f'One of types {expected_type} expected, found type: {actual_type} value: {value}')
+            raise JsonError(f'One of types {expected_type} expected, found type: {actual_type} value: {value}')
     else:
         if type(value) != expected_type:
-            raise JsonerException(f'Type {expected_type} expected, found type: {actual_type} value: {value}')
+            raise JsonError(f'Type {expected_type} expected, found type: {actual_type} value: {value}')
 
 
 def encode_primitive(encoder, typ, value):
@@ -54,7 +54,7 @@ def decode_char(decoder, typ, json_value):
         return Unsupported
     check_type(str, json_value)
     if len(json_value) != 1:
-        raise JsonerException(f'char should be represented with str length 1, found: {json_value}')
+        raise JsonError(f'char should be represented with str length 1, found: {json_value}')
     return json_value
 
 
@@ -169,7 +169,7 @@ def encode_generic_dict(encoder, typ, value):
     check_type(dict, value)
     key_type, value_type = inspect.get_args(typ)
     if key_type != str:
-        raise JsonerException(f'Dict key type {key_type} is not supported for JSON serialization, key should be of type str')
+        raise JsonError(f'Dict key type {key_type} is not supported for JSON serialization, key should be of type str')
     return {key: encoder.encode(value, value_type) for (key, value) in value.items()}
 
 
@@ -179,7 +179,7 @@ def decode_generic_dict(decoder, typ, json_value):
     check_type(dict, json_value)
     key_type, value_type = inspect.get_args(typ)
     if key_type != str:
-        raise JsonerException(f'Dict key type {key_type} is not supported for JSON deserialization - key should be str')
+        raise JsonError(f'Dict key type {key_type} is not supported for JSON deserialization - key should be str')
     return {key: decoder.decode(value_type, value) for (key, value) in json_value.items()}
 
 
@@ -189,7 +189,7 @@ def encode_generic_tuple(encoder, typ, value):
     check_type(tuple, value)
     items_types = inspect.get_args(typ)
     if len(items_types) != len(value):
-        raise JsonerException(f'Expected tuple of size: {len(items_types)}, found tuple of size: {len(value)}, value: {value}')
+        raise JsonError(f'Expected tuple of size: {len(items_types)}, found tuple of size: {len(value)}, value: {value}')
     return tuple(map(lambda item, item_type: encoder.encode(item, item_type), value, items_types))
 
 
@@ -199,7 +199,7 @@ def decode_generic_tuple(decoder, typ, json_value):
     check_type(list, json_value)
     items_types = inspect.get_args(typ)
     if len(items_types) != len(json_value):
-        raise JsonerException(f'Expected list of size: {len(items_types)}, found tuple of size: {len(json_value)}, value: {json_value}')
+        raise JsonError(f'Expected list of size: {len(items_types)}, found tuple of size: {len(json_value)}, value: {json_value}')
     return tuple(map(lambda item, item_type: decoder.decode(item_type, item), json_value, items_types))
 
 
@@ -226,9 +226,9 @@ def encode_union(encoder, typ, value):
     for union_type in union_types:
         try:
             return encoder.encode(value, union_type)
-        except JsonerException:
+        except JsonError:
             pass
-    raise JsonerException(f'Value {value} can not be deserialized as {typ}')
+    raise JsonError(f'Value {value} can not be deserialized as {typ}')
 
 
 def decode_union(decoder, typ, json_value):
@@ -238,9 +238,9 @@ def decode_union(decoder, typ, json_value):
     for union_type in union_types:
         try:
             return decoder.decode(union_type, json_value)
-        except JsonerException:
+        except JsonError:
             pass
-    raise JsonerException(f'Value {json_value} can not be deserialized as {typ}')
+    raise JsonError(f'Value {json_value} can not be deserialized as {typ}')
 
 
 def encode_any(encoder, typ, value):
@@ -295,7 +295,7 @@ class Decoder:
             result = decoder(self, typ, json_value)
             if result != Unsupported:
                 return result
-        raise JsonerException(f'Unsupported type {typ}')
+        raise JsonError(f'Unsupported type {typ}')
 
 
 class Encoder:
@@ -308,7 +308,7 @@ class Encoder:
             result = encoder(self, typ, value)
             if result != Unsupported:
                 return result
-        raise JsonerException(f'Unsupported type {typ}')
+        raise JsonError(f'Unsupported type {typ}')
 
 
 def decode(typ: Type[T], json_value: Any, decoders=[]):

@@ -14,9 +14,9 @@ def check_success(typ, data, json_str):
 
 
 def check_type_error(typ, data, json_str):
-    with raises(JsonerException):
+    with raises(JsonError):
         dumps(data, typ)
-    with raises(JsonerException):
+    with raises(JsonError):
         loads(typ, json_str)
 
 
@@ -169,13 +169,13 @@ def test_untyped_set():
 
 def encode_str_custom(encoder, typ, value):
     if typ != str:
-        return UnsupportedType()
+        return Unsupported
     return 'bla-bla '+value
 
 
 def decode_str_custom(decoder, typ, value):
     if typ != str:
-        return UnsupportedType()
+        return Unsupported
     if value.startswith('bla-bla '):
         return value[len('bla-bla '):]
     return value

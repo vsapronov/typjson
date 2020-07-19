@@ -68,7 +68,7 @@ def dumps(
         indent: Optional[int] = None,
         ) -> str:
     if not allow_weak_types and typ is None:
-        raise JsonerException('type is not provided and allow_weak_types is set to False')
+        raise JsonError('type is not provided and allow_weak_types is set to False')
     all_encoders = encoders+json_encoders
     if allow_weak_types:
         all_encoders += json_weak_encoders
@@ -94,7 +94,7 @@ def dump(
         indent: Optional[int] = None,
         ):
     if not allow_weak_types and typ is None:
-        raise JsonerException('type is not provided and allow_weak_types is set to False')
+        raise JsonError('type is not provided and allow_weak_types is set to False')
     all_encoders = encoders+json_encoders
     if allow_weak_types:
         all_encoders += json_weak_encoders
