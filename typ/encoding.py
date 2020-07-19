@@ -18,35 +18,41 @@ class JsonerException(Exception):
     pass
 
 
+def check_type(expected_type: Union[Type, List[Type]], value: Any):
+    actual_type = type(value)
+    if type(expected_type) == list:
+        if not type(value) in expected_type:
+            raise JsonerException(f'One of types {expected_type} expected, found type: {actual_type} value: {value}')
+    else:
+        if type(value) != expected_type:
+            raise JsonerException(f'Type {expected_type} expected, found type: {actual_type} value: {value}')
+
+
 def encode_primitive(encoder, typ, value):
     if typ not in [int, float, str, bool, NoneType]:
         return Unsupported
-    if not type(value) == typ:
-        raise JsonerException(f'Type {typ} was expected, found: {value}')
+    check_type(typ, value)
     return value
 
 
 def decode_primitive(decoder, typ, json_value):
     if typ not in [int, Decimal, str, bool, NoneType]:
         return Unsupported
-    if not type(json_value) == typ:
-        raise JsonerException(f'Type {typ} was expected, found type: {type(json_value)} value: {json_value}')
+    check_type(typ, json_value)
     return json_value
 
 
 def encode_char(encoder, typ, value):
     if typ != char:
         return Unsupported
-    if not type(value) == char:
-        raise JsonerException(f'Type {typ} was expected, found: {type(value)}, value: {value}')
+    check_type(typ, value)
     return str(value)
 
 
 def decode_char(decoder, typ, json_value):
     if typ != char:
         return Unsupported
-    if not type(json_value) == str:
-        raise JsonerException(f'char should be represented as str, found {type(json_value)}, value: {json_value}')
+    check_type(str, json_value)
     if len(json_value) != 1:
         raise JsonerException(f'char should be represented with str length 1, found: {json_value}')
     return json_value
@@ -55,32 +61,28 @@ def decode_char(decoder, typ, json_value):
 def decode_float(decoder, typ, json_value):
     if typ != float:
         return Unsupported
-    if type(json_value) not in [int, float, Decimal]:
-        raise JsonerException(f'Numeric type was expected, found: {type(json_value)}, value: {json_value}')
+    check_type([int, float, Decimal], json_value)
     return float(json_value)
 
 
 def encode_decimal(encoder, typ, value):
     if typ != Decimal:
         return Unsupported
-    if type(value) != typ:
-        raise JsonerException(f'Type Decimal was expected, found: {type(value)}, value: {value}')
+    check_type(typ, value)
     return float(value)
 
 
 def encode_date(encoder, typ, value):
     if typ != date:
         return Unsupported
-    if not isinstance(value, date):
-        raise JsonerException(f'date type expected, found {type(value)}, value: {value}')
+    check_type(typ, value)
     return value.isoformat()
 
 
 def decode_date(decoder, typ, json_value):
     if typ != date:
         return Unsupported
-    if not isinstance(json_value, str):
-        raise JsonerException(f'date should be represented as str, found {type(json_value)}, value: {json_value}')
+    check_type(str, json_value)
     parsed_datetime = datetime.strptime(json_value, "%Y-%m-%d")
     return parsed_datetime.date()
 
@@ -88,16 +90,14 @@ def decode_date(decoder, typ, json_value):
 def encode_datetime(encoder, typ, value):
     if typ != datetime:
         return Unsupported
-    if not isinstance(value, datetime):
-        raise JsonerException(f'datetime type expected, found {type(value)}, value: {value}')
+    check_type(typ, value)
     return value.isoformat()
 
 
 def decode_datetime(decoder, typ, json_value):
     if typ != datetime:
         return Unsupported
-    if not isinstance(json_value, str):
-        raise JsonerException(f'datetime should be represented as str, found {type(json_value)}, value: {json_value}')
+    check_type(str, json_value)
     parsed = datetime.strptime(json_value, "%Y-%m-%dT%H:%M:%S%z")
     return parsed
 
@@ -105,16 +105,14 @@ def decode_datetime(decoder, typ, json_value):
 def encode_time(encoder, typ, value):
     if typ != time:
         return Unsupported
-    if not isinstance(value, time):
-        raise JsonerException(f'time type expected, found {type(value)}, value: {value}')
+    check_type(typ, value)
     return value.isoformat()
 
 
 def decode_time(decoder, typ, json_value):
     if typ != time:
         return Unsupported
-    if not isinstance(json_value, str):
-        raise JsonerException(f'time should be represented as str, found {type(json_value)}, value: {json_value}')
+    check_type(str, json_value)
     parsed_datetime = datetime.strptime(json_value, "%H:%M:%S")
     return parsed_datetime.time()
 
@@ -122,28 +120,28 @@ def decode_time(decoder, typ, json_value):
 def encode_uuid(encoder, typ, value):
     if typ != UUID:
         return Unsupported
-    if not isinstance(value, UUID):
-        raise JsonerException(f'UUID type expected found: {type(value)}, value: {value}')
+    check_type(typ, value)
     return str(value)
 
 
 def decode_uuid(decoder, typ, json_value):
     if typ != UUID:
         return Unsupported
-    if not isinstance(json_value, str):
-        raise JsonerException(f'UUID should be represented as str, found {type(json_value)}, value: {json_value}')
+    check_type(str, json_value)
     return UUID(json_value)
 
 
 def encode_dataclass(encoder, typ, value):
     if not dataclasses.is_dataclass(typ):
         return Unsupported
+    check_type(typ, value)
     return {field.name: encoder.encode(value.__dict__[field.name], field.type) for field in dataclasses.fields(typ)}
 
 
 def decode_dataclass(decoder, typ, json_value):
     if not dataclasses.is_dataclass(typ):
         return Unsupported
+    check_type(dict, json_value)
     ctor_params = {field.name: decoder.decode(field.type, json_value[field.name]) for field in dataclasses.fields(typ)}
     value = typ(**ctor_params)
     return value
@@ -152,6 +150,7 @@ def decode_dataclass(decoder, typ, json_value):
 def encode_generic_list(encoder, typ, value):
     if not (inspect.is_generic_type(typ) and inspect.get_origin(typ) == list):
         return Unsupported
+    check_type(list, value)
     item_type, = inspect.get_args(typ)
     return [encoder.encode(item, item_type) for item in value]
 
@@ -159,6 +158,7 @@ def encode_generic_list(encoder, typ, value):
 def decode_generic_list(decoder, typ, json_value):
     if not (inspect.is_generic_type(typ) and inspect.get_origin(typ) == list):
         return Unsupported
+    check_type(list, json_value)
     item_type = inspect.get_args(typ)[0]
     return [decoder.decode(item_type, item) for item in json_value]
 
@@ -166,15 +166,17 @@ def decode_generic_list(decoder, typ, json_value):
 def encode_generic_dict(encoder, typ, value):
     if not (inspect.is_generic_type(typ) and inspect.get_origin(typ) == dict):
         return Unsupported
+    check_type(dict, value)
     key_type, value_type = inspect.get_args(typ)
     if key_type != str:
-        raise JsonerException(f'Dict key type {key_type} is not supported for JSON serializatio, key should be of type str')
+        raise JsonerException(f'Dict key type {key_type} is not supported for JSON serialization, key should be of type str')
     return {key: encoder.encode(value, value_type) for (key, value) in value.items()}
 
 
 def decode_generic_dict(decoder, typ, json_value):
     if not (inspect.is_generic_type(typ) and inspect.get_origin(typ) == dict):
         return Unsupported
+    check_type(dict, json_value)
     key_type, value_type = inspect.get_args(typ)
     if key_type != str:
         raise JsonerException(f'Dict key type {key_type} is not supported for JSON deserialization - key should be str')
@@ -184,8 +186,7 @@ def decode_generic_dict(decoder, typ, json_value):
 def encode_generic_tuple(encoder, typ, value):
     if not inspect.is_tuple_type(typ):
         return Unsupported
-    if type(value) != tuple:
-        raise JsonerException(f'Expected tuple, found {type(value)}, value: {value}')
+    check_type(tuple, value)
     items_types = inspect.get_args(typ)
     if len(items_types) != len(value):
         raise JsonerException(f'Expected tuple of size: {len(items_types)}, found tuple of size: {len(value)}, value: {value}')
@@ -195,8 +196,7 @@ def encode_generic_tuple(encoder, typ, value):
 def decode_generic_tuple(decoder, typ, json_value):
     if not inspect.is_tuple_type(typ):
         return Unsupported
-    if type(json_value) != list:
-        raise JsonerException(f'Expected list, found {type(json_value)}, value: {json_value}')
+    check_type(list, json_value)
     items_types = inspect.get_args(typ)
     if len(items_types) != len(json_value):
         raise JsonerException(f'Expected list of size: {len(items_types)}, found tuple of size: {len(json_value)}, value: {json_value}')
@@ -206,8 +206,7 @@ def decode_generic_tuple(decoder, typ, json_value):
 def encode_generic_set(encoder, typ, value):
     if not (inspect.is_generic_type(typ) and inspect.get_origin(typ) == set):
         return Unsupported
-    if type(value) != set:
-        raise JsonerException(f'Expected set, found {type(value)}, value: {value}')
+    check_type(set, value)
     item_type, = inspect.get_args(typ)
     return [encoder.encode(item, item_type) for item in value]
 
@@ -215,6 +214,7 @@ def encode_generic_set(encoder, typ, value):
 def decode_generic_set(decoder, typ, json_value):
     if not (inspect.is_generic_type(typ) and inspect.get_origin(typ) == set):
         return Unsupported
+    check_type(list, json_value)
     item_type = inspect.get_args(typ)[0]
     return set([decoder.decode(item_type, item) for item in json_value])
 
@@ -258,26 +258,28 @@ def decode_any(decoder, typ, json_value):
 def encode_list(encoder, typ, value):
     if typ != list:
         return Unsupported
+    check_type(list, value)
     return [encoder.encode(item, typ=None) for item in value]
 
 
 def encode_dict(encoder, typ, value):
     if typ != dict:
         return Unsupported
+    check_type(dict, value)
     return {item_key: encoder.encode(item_value, typ=None) for item_key, item_value in value.items()}
 
 
 def encode_tuple(encoder, typ, value):
     if typ != tuple:
         return Unsupported
-    if type(value) != tuple:
-        raise JsonerException(f'Expected tuple, found {type(value)}, value: {value}')
+    check_type(tuple, value)
     return [encoder.encode(item, typ=None) for item in value]
 
 
 def encode_set(encoder, typ, value):
     if typ != set:
         return Unsupported
+    check_type(set, value)
     return [encoder.encode(item, typ=None) for item in value]
 
 
