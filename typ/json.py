@@ -18,6 +18,10 @@ json_encoders = [
     encode_union,
     encode_dataclass,
     encode_any,
+    encode_list,
+    encode_dict,
+    encode_tuple,
+    encode_set,
 ]
 
 json_decoders = [
@@ -35,13 +39,6 @@ json_decoders = [
     decode_union,
     decode_dataclass,
     decode_any,
-]
-
-json_weak_encoders = [
-    encode_list,
-    encode_dict,
-    encode_tuple,
-    encode_set,
 ]
 
 M = TypeVar('M')
@@ -63,16 +60,10 @@ def loads(
 def dumps(
         value: M,
         typ: Optional[Type[M]] = None,
-        allow_weak_types: bool = True,
         encoders: List[EncodeFunc] = [],
         indent: Optional[int] = None,
         ) -> str:
-    if not allow_weak_types and typ is None:
-        raise JsonError('type is not provided and allow_weak_types is set to False')
-    all_encoders = encoders+json_encoders
-    if allow_weak_types:
-        all_encoders += json_weak_encoders
-    json_value = encode(value, typ, encoders=all_encoders)
+    json_value = encode(value, typ, encoders=encoders+json_encoders)
     return json.dumps(json_value, indent=indent)
 
 
@@ -89,14 +80,8 @@ def dump(
         fp: IO[str],
         value: M,
         typ: Optional[Type[M]] = None,
-        allow_weak_types: bool = True,
         encoders: List[EncodeFunc] = [],
         indent: Optional[int] = None,
         ):
-    if not allow_weak_types and typ is None:
-        raise JsonError('type is not provided and allow_weak_types is set to False')
-    all_encoders = encoders+json_encoders
-    if allow_weak_types:
-        all_encoders += json_weak_encoders
-    json_value = encode(value, typ, encoders=all_encoders)
+    json_value = encode(value, typ, encoders=encoders+json_encoders)
     return json.dump(json_value, fp, indent=indent)
