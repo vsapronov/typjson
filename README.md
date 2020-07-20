@@ -74,3 +74,61 @@ Value of `json_str` that is dumped and loaded in the code example above looks li
   "birth_date": "1984-08-01"
 }
 ```
+
+## API Overview
+
+typjson API is similar to [json](https://docs.python.org/3/library/json.html) module. Main functions are defined in `typ.json` module. In fact `typ.json` functions are using `json` module under the hood for final conversion of python structures into JSON.
+
+### typ.json.dumps
+
+`typ.json.dumps(value: M, typ: Optional[Type[M]] = None, encoders: List[EncodeFunc] = [], indent: Optional[int] = None) -> str`
+
+Serialize value to a JSON formatted str using specified type.
+
+`value` Python object to be serialized to JSON.
+
+`typ` type information for `value`. If `None` is provided then actual type of `value` is used otherwise `value` is checked to be valid instance of `typ`.
+
+`encoders` list of custom encoders, see [custom encoding](#custom-encoding).
+
+`indent` optional non-negative indent level for JSON. If `None` is provided then JSON is represented as single line without indentation.
+
+Returns JSON string or raises `JsonError`.
+
+### typ.json.dump
+
+`typ.json.dump(fp: IO[str], value: M, typ: Optional[Type[M]] = None, encoders: List[EncodeFunc] = [], indent: Optional[int] = None)`
+
+Serialize value as a JSON formatted stream.
+
+`fp` stream to write JSON to.
+
+Other arguments have the same meaning as in [typ.json.dumps](#typ-json-dumps).
+
+### typ.json.loads
+
+`typ.json.loads(typ: Type[M], json_str: str, decoders: List[DecodeFunc] = []) -> M`
+
+Deserialize json_str to a Python object of specified type.
+
+`typ` type to deserialize JSON into.
+
+`json_str` string containing JSON.
+
+`decoders` list of custom decoders, see [custom encoding](#custom-encoding).
+
+Returns instance of `M` or raises `JsonError`.
+
+### typ.json.load
+
+`typ.json.load(fp: IO[str], typ: Type[M], decoders: List[DecodeFunc] = []) -> M`
+
+Deserialize stream to a Python object of specified type.
+
+`fp` stream to read JSON from.
+
+Other arguments have the same meaning as in [typ.json.loads](#typ-json-loads)
+
+## Supported Types
+
+## Custom Encoding
