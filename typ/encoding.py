@@ -2,9 +2,9 @@ from typing import *
 import typing_inspect as inspect  # type: ignore
 import dataclasses
 from datetime import date, datetime, time
-from decimal import *
-from uuid import *
-from typ.typing import *
+from decimal import Decimal
+from uuid import UUID
+from typ.typing import char, NoneType
 
 
 class UnsupportedType:
@@ -12,6 +12,12 @@ class UnsupportedType:
 
 
 Unsupported = UnsupportedType()
+
+K = TypeVar('K')
+
+
+EncodeFunc = Callable[['Encoder', Type[K], K], Union[Any, UnsupportedType]]
+DecodeFunc = Callable[['Decoder', Type[K], Any], Union[K, UnsupportedType]]
 
 
 class JsonError(Exception):
@@ -311,9 +317,48 @@ class Encoder:
         raise JsonError(f'Unsupported type {typ}')
 
 
-def decode(typ: Type[T], json_value: Any, decoders=[]):
+def decode(typ: Type[T], json_value: Any, decoders: List[DecodeFunc] = []):
     return Decoder(decoders).decode(typ, json_value)
 
 
-def encode(value: T, typ: Optional[Type[T]] = None, encoders=[]):
+def encode(value: T, typ: Optional[Type[T]] = None, encoders: List[EncodeFunc] = []):
     return Encoder(encoders).encode(value, typ)
+
+
+json_encoders: List[EncodeFunc] = [
+    encode_primitive,
+    encode_char,
+    encode_decimal,
+    encode_date,
+    encode_datetime,
+    encode_time,
+    encode_uuid,
+    encode_generic_list,
+    encode_generic_dict,
+    encode_generic_tuple,
+    encode_generic_set,
+    encode_union,
+    encode_dataclass,
+    encode_any,
+    encode_list,
+    encode_dict,
+    encode_tuple,
+    encode_set,
+]
+
+json_decoders: List[DecodeFunc] = [
+    decode_primitive,
+    decode_char,
+    decode_float,
+    decode_date,
+    decode_datetime,
+    decode_time,
+    decode_uuid,
+    decode_generic_list,
+    decode_generic_dict,
+    decode_generic_tuple,
+    decode_generic_set,
+    decode_union,
+    decode_dataclass,
+    decode_any,
+]
