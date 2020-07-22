@@ -1,11 +1,12 @@
 from typing import *
+from inspect import isclass
 import typing_inspect as inspect  # type: ignore
 import dataclasses
 from datetime import date, datetime, time
 from decimal import Decimal
 from uuid import UUID
 from typ.typing import char, NoneType
-
+from enum import Enum
 
 class UnsupportedType:
     pass
@@ -151,6 +152,30 @@ def decode_dataclass(decoder, typ, json_value):
     ctor_params = {field.name: decoder.decode(field.type, json_value[field.name]) for field in dataclasses.fields(typ)}
     value = typ(**ctor_params)
     return value
+
+
+def encode_enum(encoder, typ, value):
+    if not (isclass(typ) and issubclass(typ, Enum)):
+        return Unsupported
+    check_type(typ, value)
+    return encoder.encode(value.value)
+
+
+def decode_enum(decoder, typ, json_value):
+    if not (isclass(typ) and issubclass(typ, Enum)):
+        return Unsupported
+    enum_member = None
+    for member in list(typ):
+        try:
+            json_value_decoded = decoder.decode(type(member.value), json_value)
+            if member.value == json_value_decoded:
+                enum_member = member
+                break
+        except:
+            pass
+    if enum_member is None:
+        raise JsonError(f'Failed to decode enum type {typ} from JSON value: {json_value}')
+    return enum_member
 
 
 def encode_generic_list(encoder, typ, value):
@@ -339,6 +364,7 @@ json_encoders: List[EncodeFunc] = [
     encode_generic_set,
     encode_union,
     encode_dataclass,
+    encode_enum,
     encode_any,
     encode_list,
     encode_dict,
@@ -360,5 +386,6 @@ json_decoders: List[DecodeFunc] = [
     decode_generic_set,
     decode_union,
     decode_dataclass,
+    decode_enum,
     decode_any,
 ]

@@ -7,6 +7,7 @@ from pytest import *
 from decimal import *
 from datetime import *
 from uuid import *
+from enum import *
 
 
 def check_success(typ, data, json_str):
@@ -142,6 +143,40 @@ def test_dataclass():
 
 def test_dataclass_wrong_field_type():
     check_type_error(TheClass, TheClass('bla', 'wrong'), '{"string_field": "bla", "int_field": "wrong"}')
+
+
+class Color(Enum):
+    RED = 'r'
+    BLUE = 'b'
+    GREEN = 'g'
+
+
+def test_str_enum():
+    check_success(Color, Color.BLUE, '"b"')
+
+
+def test_str_enum_nonexisting_member():
+    with raises(JsonError):
+        loads(Color, '"w"')
+
+
+class Shape(IntEnum):
+    CIRCLE = 0
+    RECTANGLE = 1
+    ELLIPSE = 2
+
+
+def test_int_enum():
+    check_success(Shape, Shape.RECTANGLE, '1')
+
+
+class Date(Enum):
+    NINE_ELEVEN = date(year=2001, month=9, day=11)
+    INDEPENDENCE_DAY = date(year=1776, month=7, day=4)
+
+
+def test_date_enum():
+    check_success(Date, Date.NINE_ELEVEN, '"2001-09-11"')
 
 
 def test_any():

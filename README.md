@@ -8,15 +8,19 @@ Type-safe JSON (de)serialization for Python. Compatible with mypy type hints.
 
 ## Features
 
-* Support for primitive types:
-    * `str`, `int`, `float`, `bool`, `Decimal`, `None`
-    * `date` as `"%Y-%m-%d"`, `datetime` as `"%Y-%m-%dT%H:%M:%S%z"`, `time` as `"%H:%M:%S"`
-    * `UUID` as `str` in format `"8-4-4-4-12"`
-    * `char` type as `str` of length 1 
-* Support for `Union[]` and therefore `Optional[]` type
-* Structure types: `List[]`, `Tuple[]`, `Dict[str, T]`, `Set[]`
-* Support for [data classes](https://docs.python.org/3/library/dataclasses.html)
+* Type safety in runtime and mypy compatibility
+* Support for types out of the box:
+  * Primitive types:
+      * `str`, `int`, `float`, `bool`, `Decimal`, `None`
+      * `date` as `"%Y-%m-%d"`, `datetime` as `"%Y-%m-%dT%H:%M:%S%z"`, `time` as `"%H:%M:%S"`
+      * `UUID` as `str` in format `"8-4-4-4-12"`
+      * `char` type as `str` of length 1
+  * `Union[]` and therefore `Optional[]`
+  * Structure types: `List[]`, `Tuple[]`, `Dict[str, T]`, `Set[]`
+  * [Enum classes](https://docs.python.org/3/library/enum.html)
+  * [Data classes](https://docs.python.org/3/library/dataclasses.html)
 * Support for custom encoders and decoders
+* API similar to standard [json module](https://docs.python.org/3/library/json.html)
 
 ## Simple Usage
 
@@ -145,19 +149,21 @@ List of supported types if provided [here](#supported-types).
 | typ.typing.NoneType <br/> type(None) | null      |                                                   |
 | Any                                  | any type  | represents nothing, similar to unit is some langs |
 
-### Structure Types
+### Non Primitive Types
 
-| Python type                         | JSON type          | Notes                                                             |
-| :-----------------------------------| :----------------- | ----------------------------------------------------------------- |
-| List[T]                             | array              | homogeneous, items encoded                                        |
-| Dict[str, T]                        | object             | fields values of T encoded                                        |
-| Set[T]                              | array              | homogeneous, items of T encoded                                   |
-| Tuple[T, K, ...]                    | array              | heterogeneous, items of T, K, ... encoded                         |
-| Union[T, K, ...]                    | look for T, K, ... | T, K, ... encoded                                                 |
-| list                                | array              | heterogeneous, items are encoded                                  |
-| dict                                | object             |                                                                   |
-| tuple                               | array              | heterogeneous, items are encoded                                  |
-| class decorated with<br/>@dataclass | object             | field types are respected                                         |
+| Python type                         | JSON type            | Notes                                             |
+| :-----------------------------------| :------------------- | ------------------------------------------------- |
+| List[T]                             | array                | homogeneous, items encoded                        |
+| Dict[str, T]                        | object               | fields values of T encoded                        |
+| Set[T]                              | array                | homogeneous, items of T encoded                   |
+| Tuple[T, K, ...]                    | array                | heterogeneous, items of T, K, ... encoded         |
+| Union[T, K, ...]                    | look for T, K, ...   | T, K, ... encoded                                 |
+| list                                | array                | heterogeneous, items are encoded                  |
+| dict                                | object               |                                                   |
+| tuple                               | array                | heterogeneous, items are encoded                  |
+| class decorated with<br/>@dataclass | object               | field types are respected                         |
+| Enum classes                        | look for member type | enum members are encoded according to their types |
+
 
 ### Null-safety
 
