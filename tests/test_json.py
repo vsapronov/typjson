@@ -1,5 +1,6 @@
 from typ.json import *
 from typ.typing import *
+from typ.encoding import *
 from typing import *
 from dataclasses import *
 from pytest import *
@@ -167,27 +168,6 @@ def test_untyped_set():
     assert json == '["2020-01-02"]'
 
 
-def encode_str_custom(encoder, typ, value):
-    if typ != str:
-        return Unsupported
-    return 'bla-bla '+value
-
-
-def decode_str_custom(decoder, typ, value):
-    if typ != str:
-        return Unsupported
-    if value.startswith('bla-bla '):
-        return value[len('bla-bla '):]
-    return value
-
-
-def test_str_custom():
-    data = 'something'
-    json_str = '"bla-bla something"'
-    assert dumps(data, str, encoders=[encode_str_custom]) == json_str
-    assert loads(str, json_str, decoders=[decode_str_custom]) == data
-
-
 def test_load_dump():
     data_before = TheClass('bla', 123)
     with open('temp', 'w') as fp:
@@ -195,3 +175,22 @@ def test_load_dump():
     with open('temp', 'r') as fp:
         data_after = load(fp, TheClass)
     assert data_before == data_after
+
+
+def encode_int_custom(encoder, typ, value):
+    if typ != int:
+        return Unsupported
+    check_type(int, value)
+    return str(value)
+
+
+def decode_int_custom(decoder, typ, json_value):
+    if typ != int:
+        return Unsupported
+    check_type(str, json_value)
+    return int(json_value)
+
+
+def test_int_custom():
+    assert dumps([3, 4, 5], encoders=[encode_int_custom]) == '["3", "4", "5"]'
+    assert loads(List[int], '["3", "4", "5"]', decoders=[decode_int_custom]) == [3, 4, 5]
