@@ -147,17 +147,17 @@ List of supported types if provided [here](#supported-types).
 
 ### Structure Types
 
-| Python type                         | JSON type     | Notes                                                             |
-| :-----------------------------------| :------------ | ----------------------------------------------------------------- |
-| List[T]                             | array         | homogeneous, items of T                                           |
-| Dict[str, T]                        | object        | with field names corresponding to dictionary keys and values of T |
-| Set[T]                              | array         | homogeneous, items of T                                           |
-| Tuple[T, ...]                       | array         | homogeneous, items of T                                           |
-| Union[T, K]                         | either T or K |                                                                   |
-| list                                | array         | heterogeneous                                                     |
-| dict                                | object        |                                                                   |
-| tuple                               | array         | heterogeneous                                                     |
-| class decorated with<br/>@dataclass | object        | field types are respected                                         |
+| Python type                         | JSON type          | Notes                                                             |
+| :-----------------------------------| :----------------- | ----------------------------------------------------------------- |
+| List[T]                             | array              | homogeneous, items encoded                                        |
+| Dict[str, T]                        | object             | fields values of T encoded                                        |
+| Set[T]                              | array              | homogeneous, items of T encoded                                   |
+| Tuple[T, K, ...]                    | array              | heterogeneous, items of T, K, ... encoded                         |
+| Union[T, K, ...]                    | look for T, K, ... | T, K, ... encoded                                                 |
+| list                                | array              | heterogeneous, items are encoded                                  |
+| dict                                | object             |                                                                   |
+| tuple                               | array              | heterogeneous, items are encoded                                  |
+| class decorated with<br/>@dataclass | object             | field types are respected                                         |
 
 ### Null-safety
 
@@ -193,7 +193,7 @@ assert json.dumps([3, 4, 5], encoders=[encode_int_custom]) == '["3", "4", "5"]'
 
 In the code above `encode_int_custom` is provided into `typ.json.dumps` call and it's used prior standard built-in `int` encoding. As it's deemostrated in the assert it successfully encoded integers as strings. Please never do this in real life - this code is provided only for demonstration purposes.
 
-Custom encoder defined as: `Callable[['Encoder', Type[K], K], Union[Any, UnsupportedType]]`
+Encoder function is defined as: `Callable[['Encoder', Type[K], K], Union[Any, UnsupportedType]]`
 There's an `encoder` parameter of every custom encoder which holds instance of [Encoder](#typencodingencoder). It is useful for encoding nested types, like lists or classes, etc.
 
 ### Custom Decoder
@@ -216,6 +216,8 @@ def decode_int_custom(decoder, typ, json_value):
 from typ import json
 assert loads(List[int], '["3", "4", "5"]', decoders=[decode_int_custom]) == [3, 4, 5]
 ```
+
+Decoder function is defined as: `Callable[['Decoder', Type[K], Any], Union[K, UnsupportedType]]`.
 
 ## API Reference
 
