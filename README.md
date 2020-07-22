@@ -75,59 +75,56 @@ Value of `json_str` that is dumped and loaded in the code example above looks li
 }
 ```
 
+## Type Safety
+
+### Runtime
+
+What is type safety in Python? Since Python is dynamically typed language it's hard to provide any types guarantees before runtime. However types could be checked in run time. This is exactly what typjson library is doing.
+Consider following example for `Address` type defined above:
+```python
+from typ import json
+from typing import *
+from dataclasses import dataclass
+
+
+@dataclass
+class Address:
+    street: str
+    house: int
+    apt: Optional[str]
+
+json_str = """{"street": "Main", "house": 1, "apt": 2}"""
+loaded_address = json.loads(Address, json_str)
+```
+
+The `apt` field has type defined as `Optional[str]` however value provided in JSON is `2` which is `number` type in JSON and it's obviously not compatible with `Optional[str]`.
+Respectively `json.loads` call will raise `JsonError`:
+```
+typ.encoding.JsonError: Value 2 can not be deserialized as typing.Union[str, NoneType]
+```
+Call `json.loads` will either return instance of requested type with all nested types checked or raise a error. This is runtime type safety of typjson.
+
+### Compile Time (mypy)
+
+Functions in `typ.json` module `dumps`, `loads`, `dump`, `load` have proper type hints. Therefore types could be validated with [mypy](http://mypy-lang.org/) tool:
+```python
+json_str = """{"street": "Main", "house": 1, "apt": 2}"""
+loaded_address = json.loads(Address, json_str)
+loaded_address = "some other address"
+```
+This will produce error in mypy as type of `loaded_address` is inferred as `Address`:
+```
+error: Incompatible types in assignment (expression has type "str", variable has type "Address")
+```
+This provides type safety in compile time.
+
 ## API Overview
 
-typjson API is similar to [json](https://docs.python.org/3/library/json.html) module. Main functions are defined in `typ.json` module. In fact `typ.json` functions are using `json` module under the hood for final conversion of python structures into JSON.
+typjson API is similar to [json](https://docs.python.org/3/library/json.html) module API. Main functions are defined in `typ.json` module. Most useful functions are [`typ.json.loads`](#typjsonloads) and [`typ.json.dumps`](#typjsondumps). If something went wrong during JSON encoding/decoding then [`JsonError`](#typjsonjsonerror) is raised.
+In fact `typ.json` functions are using `json` module under the hood for final conversion between python structures and JSON.
 
-### typ.json.dumps
-
-`typ.json.dumps(value: M, typ: Optional[Type[M]] = None, encoders: List[EncodeFunc] = [], indent: Optional[int] = None) -> str`
-
-Serialize value to a JSON formatted str using specified type.
-
-`value` Python object to be serialized to JSON.
-
-`typ` type information for `value`. If `None` is provided then actual type of `value` is used otherwise `value` is checked to be valid instance of `typ`.
-
-`encoders` list of custom encoders, see [custom encoding](#custom-encoding).
-
-`indent` optional non-negative indent level for JSON. If `None` is provided then JSON is represented as single line without indentation.
-
-Returns JSON string or raises `JsonError`.
-
-### typ.json.dump
-
-`typ.json.dump(fp: IO[str], value: M, typ: Optional[Type[M]] = None, encoders: List[EncodeFunc] = [], indent: Optional[int] = None)`
-
-Serialize value as a JSON formatted stream.
-
-`fp` stream to write JSON to.
-
-Other arguments have the same meaning as in [typ.json.dumps](#typjsondumps).
-
-### typ.json.loads
-
-`typ.json.loads(typ: Type[M], json_str: str, decoders: List[DecodeFunc] = []) -> M`
-
-Deserialize json_str to a Python object of specified type.
-
-`typ` type to deserialize JSON into.
-
-`json_str` string containing JSON.
-
-`decoders` list of custom decoders, see [custom encoding](#custom-encoding).
-
-Returns instance of `M` or raises `JsonError`.
-
-### typ.json.load
-
-`typ.json.load(fp: IO[str], typ: Type[M], decoders: List[DecodeFunc] = []) -> M`
-
-Deserialize stream to a Python object of specified type.
-
-`fp` stream to read JSON from.
-
-Other arguments have the same meaning as in [typ.json.loads](#typjsonloads)
+List of supported types if provided [here](#supported-types).
+[Custom Encoding](#custom-encoding) section describes how any type could be supported in addition to types that are supported out of the box.
 
 ## Supported Types
 
@@ -141,7 +138,7 @@ Other arguments have the same meaning as in [typ.json.loads](#typjsonloads)
 | boolean                              | boolean   |                                                   |
 | typ.typing.char                      | string    | string with length 1                              |
 | str                                  | string    |                                                   |
-| uuid                                 | string    | lower case hex symbols with hyphens as 8-4-4-4-12 |
+| uuid.UUID                            | string    | lower case hex symbols with hyphens as 8-4-4-4-12 |
 | datetime.date                        | string    | ISO 8601 yyyy-mm-dd                               |
 | datetime.datetime                    | string    | ISO 8601 yyyy-mm-ddThh:mm:ss.ffffff               |
 | datetime.time                        | string    | ISO 8601 hh:mm:ss.ffffff                          |
@@ -150,21 +147,162 @@ Other arguments have the same meaning as in [typ.json.loads](#typjsonloads)
 
 ### Structure Types
 
-| Python type           | JSON type     | Notes                                                             |
-| :-------------------- | :------------ | ----------------------------------------------------------------- |
-| List[T]               | array         | homogeneous, items of T                                           |
-| Dict[str, T]          | object        | with field names corresponding to dictionary keys and values of T |
-| Set[T]                | array         | homogeneous, items of T                                           |
-| Tuple[T, ...]         | array         | homogeneous, items of T                                           |
-| Union[T, K]           | either T or K |                                                                   |
-| list                  | array         | heterogeneous                                                     |
-| dict                  | object        |                                                                   |
-| tuple                 | array         | heterogeneous                                                     |
-| dataclasses.dataclass | object        | field types are respected                                         |
+| Python type                         | JSON type     | Notes                                                             |
+| :-----------------------------------| :------------ | ----------------------------------------------------------------- |
+| List[T]                             | array         | homogeneous, items of T                                           |
+| Dict[str, T]                        | object        | with field names corresponding to dictionary keys and values of T |
+| Set[T]                              | array         | homogeneous, items of T                                           |
+| Tuple[T, ...]                       | array         | homogeneous, items of T                                           |
+| Union[T, K]                         | either T or K |                                                                   |
+| list                                | array         | heterogeneous                                                     |
+| dict                                | object        |                                                                   |
+| tuple                               | array         | heterogeneous                                                     |
+| class decorated with<br/>@dataclass | object        | field types are respected                                         |
 
 ### Null-safety
 
-All types can not have `None` value besides `NoneType` aka `type(None)`. `Optional[T]` allows `None` value. So if nullable `str` is needed `Optional[str]` would be a good fit.
-`Optional[T]` type is in fact `Union[T, NoneType]` therefore in typjson it's supported via `Union[]` support. Because of this `Optional[T]` is not listed above since it's just a `Union`.
+All types can not have `None` value besides `NoneType` aka `type(None)`. `Optional[T]` allows `None` value.
+So if nullable `str` is needed `Optional[str]` would be a good fit.
+`Optional[T]` type is in fact `Union[T, NoneType]` therefore in typjson it's supported via `Union[]` support.
+Because of this `Optional[T]` is not listed above since it's just a `Union`.
 
 ## Custom Encoding
+
+In fact all types that are supported out of the box are supported via encoders and decoders. Examples of custom encoder and decoder are provided just for basic understanding. For deeper insight the one might be interested to look at source code of `typ.encoding` module.
+
+### Custom Encoder
+
+[typ.json.dump](#typjsondump) and [typ.json.dumps](#typjsondumps) functions take list of encoders as a parameter.
+Those encoders are custom encoders that are used in addition to standard built-in encoders.
+Let's implement custom encoder that will code all integers as strings in JSON:
+```python
+from typ.encoding import Unsupported, check_type
+
+def encode_int_custom(encoder, typ, value):
+    if typ != int:
+        # if this encoder is not applicable to the typ it should return Unsupported
+        return Unsupported
+    # there's a helper function checking that value is instance of specified type - int
+    check_type(int, value)
+    # return encoded value
+    return str(value)
+
+from typ import json
+assert json.dumps([3, 4, 5], encoders=[encode_int_custom]) == '["3", "4", "5"]'
+```
+
+In the code above `encode_int_custom` is provided into `typ.json.dumps` call and it's used prior standard built-in `int` encoding. As it's deemostrated in the assert it successfully encoded integers as strings. Please never do this in real life - this code is provided only for demonstration purposes.
+
+Custom encoder defined as: `Callable[['Encoder', Type[K], K], Union[Any, UnsupportedType]]`
+There's an `encoder` parameter of every custom encoder which holds instance of [Encoder](#typencodingencoder). It is useful for encoding nested types, like lists or classes, etc.
+
+### Custom Decoder
+
+[typ.json.load](#typjsonload) and [typ.json.loads](#typjsonloads) functions take list of decoders as a parameter.
+Similarly to [encoding](#custom-encoder) it's useful for custom decoding logic.
+Here's a mirror example for decoding `int` type from strings in JSON:
+```python
+from typ.encoding import Unsupported, check_type
+
+def decode_int_custom(decoder, typ, json_value):
+    if typ != int:
+        # if this encoder is not applicable to the typ it should return Unsupported
+        return Unsupported
+    # check that JSON has string in the json_value
+    check_type(str, json_value)
+    # return decoded value
+    return int(json_value)
+
+from typ import json
+assert loads(List[int], '["3", "4", "5"]', decoders=[decode_int_custom]) == [3, 4, 5]
+```
+
+## API Reference
+
+### typ.json.dumps
+
+`typ.json.dumps(value: T, typ: Optional[Type[T]] = None, encoders: List[EncodeFunc] = [], indent: Optional[int] = None) -> str`
+
+Serialize value to a JSON formatted str using specified type.
+
+`value` Python object to be serialized to JSON.
+
+`typ` type information for `value`.
+If `None` is provided then actual type of `value` is used otherwise `value` is checked to be valid instance of `typ`.
+
+`encoders` list of custom encoders, see [custom encoding](#custom-encoding).
+
+`indent` optional non-negative indent level for JSON. If `None` is provided then JSON is represented as single line without indentation.
+
+Returns JSON string or raises `JsonError`.
+
+### typ.json.dump
+
+`typ.json.dump(fp: IO[str], value: T, typ: Optional[Type[T]] = None, encoders: List[EncodeFunc] = [], indent: Optional[int] = None) -> None`
+
+Serialize value as a JSON formatted stream.
+
+`fp` stream to write JSON to.
+
+Other arguments have the same meaning as in [typ.json.dumps](#typjsondumps).
+
+### typ.json.loads
+
+`typ.json.loads(typ: Type[T], json_str: str, decoders: List[DecodeFunc] = []) -> T`
+
+Deserialize json_str to a Python object of specified type.
+
+`typ` type to deserialize JSON into.
+
+`json_str` string containing JSON.
+
+`decoders` list of custom decoders, see [custom encoding](#custom-encoding).
+
+Returns instance of `M` or raises `JsonError`.
+
+### typ.json.load
+
+`typ.json.load(fp: IO[str], typ: Type[T], decoders: List[DecodeFunc] = []) -> T`
+
+Deserialize stream to a Python object of specified type.
+
+`fp` stream to read JSON from.
+
+Other arguments have the same meaning as in [typ.json.loads](#typjsonloads)
+
+### typ.encoding.JsonError
+
+`JsonError` raised in case of any issue during encoding/decoding JSON data according to type information provided.
+
+### typ.encoding.Encoder
+
+`Encoder` is main internal class providing encoding to JSON structures functionality.
+Instance of `Encoder` is passed to each individual type-specific encoder.
+
+#### Encoder.encode
+`Encoder.encode(self, value: T, typ: Optional[Type[T]] = None) -> Any`
+
+Encodes `value` into Python structure serializable to JSON with json library using internal encoders.
+
+`value` is data to encode as JSON data.
+
+`typ` type to encode if `None` id provided (default) then type information will be taken from `value`.
+
+Returns data serializable into JSON or raises `JsonError`.
+
+### typ.encoding.Decoder
+
+`Decoder` is main internal class providing decoding from JSON structures functionality.
+Instance of `Decoder` is passed to each individual type-specific decoder.
+
+#### Decoder.decode
+
+`Decoder.decode(self, typ: Type[T], json_value: Any) -> T`
+
+Decodes JSON data `jaon_value` into instance of type `typ` using internal decoders.
+
+`typ` type to decode into
+
+`json_value` JSON data
+
+Returns instance of `typ` or raises `JsonError`.
