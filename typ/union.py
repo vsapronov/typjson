@@ -1,7 +1,7 @@
 __UNION_MEMBERS__ = "__union_members"
 
 
-def tagged_union(union_class):
+def union(union_class):
     class UnionMember(union_class):
         def __init__(self, member_name, member_type, value):
             self._member_name = member_name
@@ -118,7 +118,7 @@ def member_type(obj):
 default = object()
 
 
-def match_case(case_key, obj):
+def _match_case(case_key, obj):
     if default == case_key:
         return True
     if _isinstance_member_creator(case_key):
@@ -128,7 +128,7 @@ def match_case(case_key, obj):
 
 
 def match(obj, cases):
-    case_key, case_lambda = next(((case_key, case_lambda) for case_key, case_lambda in cases.items() if match_case(case_key, obj)), (None, None))
+    case_key, case_lambda = next(((case_key, case_lambda) for case_key, case_lambda in cases.items() if _match_case(case_key, obj)), (None, None))
     if case_lambda is None:
         raise ValueError(f'{obj} was not matched by any case')
     if case_key == default:

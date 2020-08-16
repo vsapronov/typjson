@@ -7,7 +7,7 @@ from decimal import Decimal
 from uuid import UUID
 from typ.typing import char, NoneType
 from enum import Enum
-from typ import tagged_union
+from typ import union
 
 class UnsupportedType:
     pass
@@ -276,25 +276,25 @@ def decode_union(decoder, typ, json_value):
 
 
 def encode_tagged_union(encoder, typ, value):
-    if not tagged_union.isunion(typ):
+    if not union.isunion(typ):
         return Unsupported
-    return {tagged_union.member_name(value): encoder.encode(value.value, tagged_union.member_type(value))}
+    return {union.member_name(value): encoder.encode(value.value, union.member_type(value))}
 
 
 def decode_tagged_union(decoder, typ, json_value):
-    if not tagged_union.isunion(typ):
+    if not union.isunion(typ):
         return Unsupported
     check_type(dict, json_value)
     if len(json_value) != 1:
         raise JsonError(f'Value {json_value} can not be deserialized as {typ} tagged_union should be represented as object with single field')
     json_value_key = list(json_value.keys())[0]
     json_value_val = json_value[json_value_key]
-    member = next((m for m in tagged_union.members(typ) if m == json_value_key), None)
-    member_type = tagged_union.members(typ)[member]
+    member = next((m for m in union.members(typ) if m == json_value_key), None)
+    member_type = union.members(typ)[member]
     if member_type is None:
-        return tagged_union.create_member(typ, member, None)
+        return union.create_member(typ, member, None)
     else:
-        return tagged_union.create_member(typ, member, decoder.decode(member_type, json_value_val))
+        return union.create_member(typ, member, decoder.decode(member_type, json_value_val))
 
 
 def encode_any(encoder, typ, value):

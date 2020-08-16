@@ -8,7 +8,7 @@ from decimal import *
 from datetime import *
 from uuid import *
 from enum import *
-from typ.tagged_union import *
+from typ.union import *
 
 
 def check_success(typ, data, json_str):
@@ -232,7 +232,7 @@ def test_int_custom():
     assert loads(List[int], '["3", "4", "5"]', decoders=[decode_int_custom]) == [3, 4, 5]
 
 
-@tagged_union
+@union
 class A:
     Number: int
     Date: date

@@ -1,14 +1,14 @@
-from typ.tagged_union import *
+from typ.union import *
 
 
-@tagged_union
+@union
 class A:
     Number: int
     Text: str
     Unknown: None
 
 
-@tagged_union
+@union
 class B:
     Number: int
     Text: str
