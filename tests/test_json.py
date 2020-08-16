@@ -1,5 +1,5 @@
 from typ.json import *
-from typ.typing import *
+from typ.types import *
 from typ.encoding import *
 from typing import *
 from dataclasses import *

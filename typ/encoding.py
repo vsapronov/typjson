@@ -5,7 +5,7 @@ import dataclasses
 from datetime import date, datetime, time
 from decimal import Decimal
 from uuid import UUID
-from typ.typing import char, NoneType
+from typ.types import char, NoneType
 from enum import Enum
 from typ import union
 

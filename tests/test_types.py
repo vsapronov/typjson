@@ -1,4 +1,4 @@
-from typ.typing import *
+from typ.types import *
 from pytest import *
 
 
