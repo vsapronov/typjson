@@ -16,7 +16,7 @@ def check_success(typ, data, json_str):
     assert loads(typ, json_str) == data
 
 
-def check_type_error(typ, data, json_str):
+def check_json_error(typ, data, json_str):
     with raises(JsonError):
         dumps(data, typ)
     with raises(JsonError):
@@ -28,11 +28,11 @@ def test_int():
 
 
 def test_int_boolean():
-    check_type_error(int, True, 'true')
+    check_json_error(int, True, 'true')
 
 
 def test_int_wrong_type():
-    check_type_error(int, '3', '"3"')
+    check_json_error(int, '3', '"3"')
 
 
 def test_float():
@@ -56,7 +56,7 @@ def test_char():
 
 
 def test_null_safety():
-    check_type_error(str, None, 'null')
+    check_json_error(str, None, 'null')
 
 
 def test_bool():
@@ -68,7 +68,7 @@ def test_none():
 
 
 def test_none_wrong_type():
-    check_type_error(NoneType, 'bla', '"bla"')
+    check_json_error(NoneType, 'bla', '"bla"')
 
 
 def test_date():
@@ -84,7 +84,7 @@ def test_time():
 
 
 def test_date_wrong_type():
-    check_type_error(date, 3, '3')
+    check_json_error(date, 3, '3')
 
 
 def test_uuid():
@@ -104,7 +104,7 @@ def test_generic_dict():
 
 
 def test_generic_dict_wrong_key_type():
-    check_type_error(Dict[int, date], {2: date(year=2020, month=1, day=2)}, '{"2": "2020-01-02"}')
+    check_json_error(Dict[int, date], {2: date(year=2020, month=1, day=2)}, '{"2": "2020-01-02"}')
 
 
 def test_generic_tuple():
@@ -129,7 +129,7 @@ def test_union_primitives():
 
 
 def test_union_wrong_type():
-    check_type_error(Union[str, int], True, 'true')
+    check_json_error(Union[str, int], True, 'true')
 
 
 @dataclass
@@ -143,7 +143,7 @@ def test_dataclass():
 
 
 def test_dataclass_wrong_field_type():
-    check_type_error(TheClass, TheClass('bla', 'wrong'), '{"string_field": "bla", "int_field": "wrong"}')
+    check_json_error(TheClass, TheClass('bla', 'wrong'), '{"string_field": "bla", "int_field": "wrong"}')
 
 
 class Color(Enum):
@@ -243,6 +243,6 @@ def test_tagged_union():
     check_success(A, A.Number(3), '{"Number": 3}')
     check_success(A, A.Date(date(year=2020, month=8, day=1)), '{"Date": "2020-08-01"}')
     check_success(A, A.Unknown(), '{"Unknown": null}')
-    check_type_error(A, 3, '3')
+    check_json_error(A, 3, '3')
     with raises(JsonError):
         loads(A, '{"Garbage": 5, "Number": 3}')
