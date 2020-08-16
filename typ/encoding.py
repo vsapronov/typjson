@@ -1,13 +1,13 @@
-from typing import *
+from typing import Type, TypeVar, Callable, Optional, List, Union, Any
 from inspect import isclass
 import typing_inspect as inspect  # type: ignore
 import dataclasses
 from datetime import date, datetime, time
 from decimal import Decimal
 from uuid import UUID
-from typ.types import char, NoneType
+from typ.types import char, NoneType, union
 from enum import Enum
-from typ import union
+
 
 class UnsupportedType:
     pass

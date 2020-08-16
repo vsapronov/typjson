@@ -1,4 +1,4 @@
-from typ.types import *
+from typ.types import char, NoneType
 from pytest import *
 
 

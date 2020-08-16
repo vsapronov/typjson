@@ -1,5 +1,4 @@
-from typing import *
-from typing import IO
+from typing import TypeVar, Type, List, Optional, IO
 from typ.encoding import DecodeFunc, EncodeFunc, decode, encode, json_encoders, json_decoders, JsonError
 import decimal
 import json

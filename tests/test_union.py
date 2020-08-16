@@ -1,4 +1,4 @@
-from typ.union import *
+from typ.types.union import *
 
 
 @union
