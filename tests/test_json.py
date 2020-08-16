@@ -8,6 +8,7 @@ from decimal import *
 from datetime import *
 from uuid import *
 from enum import *
+from typ.tagged_union import *
 
 
 def check_success(typ, data, json_str):
@@ -229,3 +230,19 @@ def decode_int_custom(decoder, typ, json_value):
 def test_int_custom():
     assert dumps([3, 4, 5], encoders=[encode_int_custom]) == '["3", "4", "5"]'
     assert loads(List[int], '["3", "4", "5"]', decoders=[decode_int_custom]) == [3, 4, 5]
+
+
+@tagged_union
+class A:
+    Number: int
+    Date: date
+    Unknown: None
+
+
+def test_tagged_union():
+    check_success(A, A.Number(3), '{"Number": 3}')
+    check_success(A, A.Date(date(year=2020, month=8, day=1)), '{"Date": "2020-08-01"}')
+    check_success(A, A.Unknown(), '{"Unknown": null}')
+    check_type_error(A, 3, '3')
+    with raises(JsonError):
+        loads(A, '{"Garbage": 5, "Number": 3}')

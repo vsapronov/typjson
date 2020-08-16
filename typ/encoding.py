@@ -7,6 +7,7 @@ from decimal import Decimal
 from uuid import UUID
 from typ.typing import char, NoneType
 from enum import Enum
+from typ import tagged_union
 
 class UnsupportedType:
     pass
@@ -274,6 +275,28 @@ def decode_union(decoder, typ, json_value):
     raise JsonError(f'Value {json_value} can not be deserialized as {typ}')
 
 
+def encode_tagged_union(encoder, typ, value):
+    if not tagged_union.isunion(typ):
+        return Unsupported
+    return {tagged_union.member_name(value): encoder.encode(value.value, tagged_union.member_type(value))}
+
+
+def decode_tagged_union(decoder, typ, json_value):
+    if not tagged_union.isunion(typ):
+        return Unsupported
+    check_type(dict, json_value)
+    if len(json_value) != 1:
+        raise JsonError(f'Value {json_value} can not be deserialized as {typ} tagged_union should be represented as object with single field')
+    json_value_key = list(json_value.keys())[0]
+    json_value_val = json_value[json_value_key]
+    member = next((m for m in tagged_union.members(typ) if m == json_value_key), None)
+    member_type = tagged_union.members(typ)[member]
+    if member_type is None:
+        return tagged_union.create_member(typ, member, None)
+    else:
+        return tagged_union.create_member(typ, member, decoder.decode(member_type, json_value_val))
+
+
 def encode_any(encoder, typ, value):
     if typ != Any:
         return Unsupported
@@ -322,11 +345,14 @@ class Decoder:
         self.decoders = decoders
 
     def decode(self, typ: Type[T], json_value: Any) -> T:
-        for decoder in self.decoders:
-            result = decoder(self, typ, json_value)
-            if result != Unsupported:
-                return result
-        raise JsonError(f'Unsupported type {typ}')
+        try:
+            for decoder in self.decoders:
+                result = decoder(self, typ, json_value)
+                if result != Unsupported:
+                    return result
+            raise JsonError(f'Unsupported type {typ}')
+        except Exception as ex:
+            raise JsonError(f'Error during decoding: {ex}')
 
 
 class Encoder:
@@ -334,12 +360,15 @@ class Encoder:
         self.encoders = encoders
 
     def encode(self, value: T, typ: Optional[Type[T]] = None):
-        typ = typ if typ is not None else type(value)
-        for encoder in self.encoders:
-            result = encoder(self, typ, value)
-            if result != Unsupported:
-                return result
-        raise JsonError(f'Unsupported type {typ}')
+        try:
+            typ = typ if typ is not None else type(value)
+            for encoder in self.encoders:
+                result = encoder(self, typ, value)
+                if result != Unsupported:
+                    return result
+            raise JsonError(f'Unsupported type {typ}')
+        except Exception as ex:
+            raise JsonError(f'Error during encoding: {ex}')
 
 
 def decode(typ: Type[T], json_value: Any, decoders: List[DecodeFunc] = []):
@@ -365,6 +394,7 @@ json_encoders: List[EncodeFunc] = [
     encode_union,
     encode_dataclass,
     encode_enum,
+    encode_tagged_union,
     encode_any,
     encode_list,
     encode_dict,
@@ -387,5 +417,6 @@ json_decoders: List[DecodeFunc] = [
     decode_union,
     decode_dataclass,
     decode_enum,
+    decode_tagged_union,
     decode_any,
 ]
