@@ -240,9 +240,9 @@ class A:
 
 
 def test_tagged_union():
-    check_success(A, A.Number(3), '{"Number": 3}')
-    check_success(A, A.Date(date(year=2020, month=8, day=1)), '{"Date": "2020-08-01"}')
-    check_success(A, A.Unknown(), '{"Unknown": null}')
+    check_success(A, A.Number(3), '{"number": 3}')
+    check_success(A, A.Date(date(year=2020, month=8, day=1)), '{"date": "2020-08-01"}')
+    check_success(A, A.Unknown(), '{"unknown": null}')
     check_json_error(A, 3, '3')
     with raises(JsonError):
-        loads(A, '{"Garbage": 5, "Number": 3}')
+        loads(A, '{"garbage": 5, "number": 3}')

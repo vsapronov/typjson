@@ -17,6 +17,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.7"
 typing_inspect = "^0.6.0"
+stringcase = "^1.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

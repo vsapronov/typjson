@@ -7,6 +7,7 @@ from decimal import Decimal
 from uuid import UUID
 from typ.types import char, NoneType, union
 from enum import Enum
+from stringcase import snakecase
 
 
 class UnsupportedType:
@@ -278,7 +279,9 @@ def decode_union(decoder, typ, json_value):
 def encode_tagged_union(encoder, typ, value):
     if not union.isunion(typ):
         return Unsupported
-    return {union.member_name(value): encoder.encode(value.value, union.member_type(value))}
+    json_value_key = encoder.to_json_case(union.member_name(value))
+    json_value_val = encoder.encode(value.value, union.member_type(value))
+    return {json_value_key: json_value_val}
 
 
 def decode_tagged_union(decoder, typ, json_value):
@@ -289,7 +292,7 @@ def decode_tagged_union(decoder, typ, json_value):
         raise JsonError(f'Value {json_value} can not be deserialized as {typ} tagged_union should be represented as object with single field')
     json_value_key = list(json_value.keys())[0]
     json_value_val = json_value[json_value_key]
-    member = next((m for m in union.members(typ) if m == json_value_key), None)
+    member = next((m for m in union.members(typ) if decoder.to_json_case(m) == json_value_key), None)
     member_type = union.members(typ)[member]
     if member_type is None:
         return union.create_member(typ, member, None)
@@ -341,8 +344,12 @@ T = TypeVar('T')
 
 
 class Decoder:
-    def __init__(self, decoders):
+    def __init__(self, decoders, to_json_case):
         self.decoders = decoders
+        self.to_json_case = to_json_case
+
+    def to_json_case(self, name):
+        return self.to_json_case(name)
 
     def decode(self, typ: Type[T], json_value: Any) -> T:
         try:
@@ -356,8 +363,12 @@ class Decoder:
 
 
 class Encoder:
-    def __init__(self, encoders):
+    def __init__(self, encoders, to_json_case):
         self.encoders = encoders
+        self.to_json_case = to_json_case
+
+    def to_json_case(self, name):
+        return self.to_json_case(name)
 
     def encode(self, value: T, typ: Optional[Type[T]] = None):
         try:
@@ -372,11 +383,11 @@ class Encoder:
 
 
 def decode(typ: Type[T], json_value: Any, decoders: List[DecodeFunc] = []):
-    return Decoder(decoders).decode(typ, json_value)
+    return Decoder(decoders, snakecase).decode(typ, json_value)
 
 
 def encode(value: T, typ: Optional[Type[T]] = None, encoders: List[EncodeFunc] = []):
-    return Encoder(encoders).encode(value, typ)
+    return Encoder(encoders, snakecase).encode(value, typ)
 
 
 json_encoders: List[EncodeFunc] = [
