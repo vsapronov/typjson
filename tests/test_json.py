@@ -9,11 +9,12 @@ from enum import Enum, IntEnum
 from typ.types.union import union
 from typ.types import char, NoneType
 from pytest import *
+from stringcase import snakecase
 
 
 def check_success(typ, data, json_str):
-    assert dumps(data, typ) == json_str
-    assert loads(typ, json_str) == data
+    assert dumps(data, typ, case=snakecase) == json_str
+    assert loads(typ, json_str, case=snakecase) == data
 
 
 def check_json_error(typ, data, json_str):

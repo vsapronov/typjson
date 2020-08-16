@@ -21,7 +21,7 @@ K = TypeVar('K')
 
 EncodeFunc = Callable[['Encoder', Type[K], K], Union[Any, UnsupportedType]]
 DecodeFunc = Callable[['Decoder', Type[K], Any], Union[K, UnsupportedType]]
-
+CaseConverter = Callable[[str], str]
 
 class JsonError(Exception):
     pass
@@ -346,10 +346,12 @@ T = TypeVar('T')
 class Decoder:
     def __init__(self, decoders, to_json_case):
         self.decoders = decoders
-        self.to_json_case = to_json_case
+        self._to_json_case = to_json_case
 
     def to_json_case(self, name):
-        return self.to_json_case(name)
+        if self._to_json_case is None:
+            return name
+        return self._to_json_case(name)
 
     def decode(self, typ: Type[T], json_value: Any) -> T:
         try:
@@ -365,10 +367,12 @@ class Decoder:
 class Encoder:
     def __init__(self, encoders, to_json_case):
         self.encoders = encoders
-        self.to_json_case = to_json_case
+        self._to_json_case = to_json_case
 
     def to_json_case(self, name):
-        return self.to_json_case(name)
+        if self._to_json_case is None:
+            return name
+        return self._to_json_case(name)
 
     def encode(self, value: T, typ: Optional[Type[T]] = None):
         try:
@@ -382,12 +386,12 @@ class Encoder:
             raise JsonError(f'Error during encoding: {ex}')
 
 
-def decode(typ: Type[T], json_value: Any, decoders: List[DecodeFunc] = []):
-    return Decoder(decoders, snakecase).decode(typ, json_value)
+def decode(typ: Type[T], json_value: Any, case: CaseConverter = None, decoders: List[DecodeFunc] = []):
+    return Decoder(decoders, case).decode(typ, json_value)
 
 
-def encode(value: T, typ: Optional[Type[T]] = None, encoders: List[EncodeFunc] = []):
-    return Encoder(encoders, snakecase).encode(value, typ)
+def encode(value: T, typ: Optional[Type[T]] = None, case: CaseConverter = None, encoders: List[EncodeFunc] = []):
+    return Encoder(encoders, case).encode(value, typ)
 
 
 json_encoders: List[EncodeFunc] = [
