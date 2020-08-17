@@ -147,7 +147,6 @@ List of supported types if provided [here](#supported-types).
 | datetime.datetime                    | string    | ISO 8601 yyyy-mm-ddThh:mm:ss.ffffff               |
 | datetime.time                        | string    | ISO 8601 hh:mm:ss.ffffff                          |
 | typ.typing.NoneType <br/> type(None) | null      |                                                   |
-| Any                                  | any type  | represents nothing, similar to unit is some langs |
 
 ### Non Primitive Types
 
@@ -161,8 +160,10 @@ List of supported types if provided [here](#supported-types).
 | list                                | array                | heterogeneous, items are encoded                  |
 | dict                                | object               |                                                   |
 | tuple                               | array                | heterogeneous, items are encoded                  |
-| class decorated with<br/>@dataclass | object               | field types are respected                         |
 | Enum classes                        | look for member type | enum members are encoded according to their types |
+| class decorated with<br/>@dataclass | object               | field types are respected                         |
+| class decorated with<br/>@union     | object               | object with single field                          |
+| Any                                 | any type             | anything                                          |
 
 
 ### Null-safety
@@ -229,7 +230,7 @@ Decoder function is defined as: `Callable[['Decoder', Type[K], Any], Union[K, Un
 
 ### typ.json.dumps
 
-`typ.json.dumps(value: T, typ: Optional[Type[T]] = None, encoders: List[EncodeFunc] = [], indent: Optional[int] = None) -> str`
+`typ.json.dumps(value: T, typ: Optional[Type[T]] = None, case: CaseConverter = None, encoders: List[EncodeFunc] = [], indent: Optional[int] = None) -> str`
 
 Serialize value to a JSON formatted str using specified type.
 
@@ -237,6 +238,8 @@ Serialize value to a JSON formatted str using specified type.
 
 `typ` type information for `value`.
 If `None` is provided then actual type of `value` is used otherwise `value` is checked to be valid instance of `typ`.
+
+`case` case converter, see [fields case](#fields-case).
 
 `encoders` list of custom encoders, see [custom encoding](#custom-encoding).
 
@@ -246,7 +249,7 @@ Returns JSON string or raises `JsonError`.
 
 ### typ.json.dump
 
-`typ.json.dump(fp: IO[str], value: T, typ: Optional[Type[T]] = None, encoders: List[EncodeFunc] = [], indent: Optional[int] = None) -> None`
+`typ.json.dump(fp: IO[str], value: T, typ: Optional[Type[T]] = None, case: CaseConverter = None, encoders: List[EncodeFunc] = [], indent: Optional[int] = None) -> None`
 
 Serialize value as a JSON formatted stream.
 
@@ -256,7 +259,7 @@ Other arguments have the same meaning as in [typ.json.dumps](#typjsondumps).
 
 ### typ.json.loads
 
-`typ.json.loads(typ: Type[T], json_str: str, decoders: List[DecodeFunc] = []) -> T`
+`typ.json.loads(typ: Type[T], json_str: str, case: CaseConverter = None, decoders: List[DecodeFunc] = []) -> T`
 
 Deserialize json_str to a Python object of specified type.
 
@@ -264,13 +267,15 @@ Deserialize json_str to a Python object of specified type.
 
 `json_str` string containing JSON.
 
+`case` case converter, see [fields case](#fields-case).
+
 `decoders` list of custom decoders, see [custom encoding](#custom-encoding).
 
 Returns instance of `M` or raises `JsonError`.
 
 ### typ.json.load
 
-`typ.json.load(fp: IO[str], typ: Type[T], decoders: List[DecodeFunc] = []) -> T`
+`typ.json.load(fp: IO[str], typ: Type[T], case: CaseConverter = None, decoders: List[DecodeFunc] = []) -> T`
 
 Deserialize stream to a Python object of specified type.
 
@@ -278,39 +283,6 @@ Deserialize stream to a Python object of specified type.
 
 Other arguments have the same meaning as in [typ.json.loads](#typjsonloads)
 
-### typ.encoding.JsonError
+### typ.json.JsonError (defined as typ.encoding.JsonError)
 
 `JsonError` raised in case of any issue during encoding/decoding JSON data according to type information provided.
-
-### typ.encoding.Encoder
-
-`Encoder` is main internal class providing encoding to JSON structures functionality.
-Instance of `Encoder` is passed to each individual type-specific encoder.
-
-#### Encoder.encode
-`Encoder.encode(self, value: T, typ: Optional[Type[T]] = None) -> Any`
-
-Encodes `value` into Python structure serializable to JSON with json library using internal encoders.
-
-`value` is data to encode as JSON data.
-
-`typ` type to encode if `None` id provided (default) then type information will be taken from `value`.
-
-Returns data serializable into JSON or raises `JsonError`.
-
-### typ.encoding.Decoder
-
-`Decoder` is main internal class providing decoding from JSON structures functionality.
-Instance of `Decoder` is passed to each individual type-specific decoder.
-
-#### Decoder.decode
-
-`Decoder.decode(self, typ: Type[T], json_value: Any) -> T`
-
-Decodes JSON data `jaon_value` into instance of type `typ` using internal decoders.
-
-`typ` type to decode into
-
-`json_value` JSON data
-
-Returns instance of `typ` or raises `JsonError`.
