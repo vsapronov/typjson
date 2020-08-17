@@ -247,3 +247,13 @@ def test_tagged_union():
     check_json_error(A, 3, '3')
     with raises(JsonError):
         loads(A, '{"garbage": 5, "number": 3}')
+
+
+@dataclass
+class StrangeCaseClass:
+    StringField: str
+    IntField: int
+
+
+def test_dataclass():
+    check_success(StrangeCaseClass, StrangeCaseClass('bla', 123), '{"string_field": "bla", "int_field": 123}')

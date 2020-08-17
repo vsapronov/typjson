@@ -144,14 +144,16 @@ def encode_dataclass(encoder, typ, value):
     if not dataclasses.is_dataclass(typ):
         return Unsupported
     check_type(typ, value)
-    return {field.name: encoder.encode(value.__dict__[field.name], field.type) for field in dataclasses.fields(typ)}
+    fields = dataclasses.fields(typ)
+    return {encoder.to_json_case(field.name): encoder.encode(value.__dict__[field.name], field.type) for field in fields}
 
 
 def decode_dataclass(decoder, typ, json_value):
     if not dataclasses.is_dataclass(typ):
         return Unsupported
     check_type(dict, json_value)
-    ctor_params = {field.name: decoder.decode(field.type, json_value[field.name]) for field in dataclasses.fields(typ)}
+    fields = dataclasses.fields(typ)
+    ctor_params = {field.name: decoder.decode(field.type, json_value[decoder.to_json_case(field.name)]) for field in fields}
     value = typ(**ctor_params)
     return value
 
