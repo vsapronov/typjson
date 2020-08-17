@@ -356,14 +356,11 @@ class Decoder:
         return self._to_json_case(name)
 
     def decode(self, typ: Type[T], json_value: Any) -> T:
-        try:
-            for decoder in self.decoders:
-                result = decoder(self, typ, json_value)
-                if result != Unsupported:
-                    return result
-            raise JsonError(f'Unsupported type {typ}')
-        except Exception as ex:
-            raise JsonError(f'Error during decoding: {ex}')
+        for decoder in self.decoders:
+            result = decoder(self, typ, json_value)
+            if result != Unsupported:
+                return result
+        raise JsonError(f'Unsupported type {typ}')
 
 
 class Encoder:
@@ -377,24 +374,30 @@ class Encoder:
         return self._to_json_case(name)
 
     def encode(self, value: T, typ: Optional[Type[T]] = None):
-        try:
-            typ = typ if typ is not None else type(value)
-            for encoder in self.encoders:
-                result = encoder(self, typ, value)
-                if result != Unsupported:
-                    return result
-            raise JsonError(f'Unsupported type {typ}')
-        except Exception as ex:
-            raise JsonError(f'Error during encoding: {ex}')
+        typ = typ if typ is not None else type(value)
+        for encoder in self.encoders:
+            result = encoder(self, typ, value)
+            if result != Unsupported:
+                return result
+        raise JsonError(f'Unsupported type {typ}')
 
 
 def decode(typ: Type[T], json_value: Any, case: CaseConverter = None, decoders: List[DecodeFunc] = []):
-    return Decoder(decoders, case).decode(typ, json_value)
+    try:
+        return Decoder(decoders, case).decode(typ, json_value)
+    except Exception as error:
+        if error is JsonError:
+            raise error
+        raise JsonError(f'Error during decoding: {error}')
 
 
 def encode(value: T, typ: Optional[Type[T]] = None, case: CaseConverter = None, encoders: List[EncodeFunc] = []):
-    return Encoder(encoders, case).encode(value, typ)
-
+    try:
+        return Encoder(encoders, case).encode(value, typ)
+    except Exception as error:
+        if error is JsonError:
+            raise error
+        raise JsonError(f'Error during encoding: {error}')
 
 json_encoders: List[EncodeFunc] = [
     encode_primitive,
