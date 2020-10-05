@@ -147,6 +147,19 @@ def test_dataclass_wrong_field_type():
     check_json_error(TheClass, TheClass('bla', 'wrong'), '{"string_field": "bla", "int_field": "wrong"}')
 
 
+@dataclass
+class OneOptionalField:
+    the_field: Optional[str]
+
+
+def test_optional_field_omit():
+    assert loads(OneOptionalField, '{}', case=snakecase) == OneOptionalField(None)
+
+
+def test_optional_field_present():
+    assert loads(OneOptionalField, '{"the_field": null}', case=snakecase) == OneOptionalField(None)
+
+
 class Color(Enum):
     RED = 'r'
     BLUE = 'b'

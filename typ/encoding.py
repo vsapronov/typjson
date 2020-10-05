@@ -153,7 +153,7 @@ def decode_dataclass(decoder, typ, json_value):
         return Unsupported
     check_type(dict, json_value)
     fields = dataclasses.fields(typ)
-    ctor_params = {field.name: decoder.decode(field.type, json_value[decoder.to_json_case(field.name)]) for field in fields}
+    ctor_params = {field.name: decoder.decode(field.type, json_value.get(decoder.to_json_case(field.name))) for field in fields}
     value = typ(**ctor_params)
     return value
 
