@@ -1,10 +1,29 @@
-from typing import TypeVar, Type, List, Optional, IO
-from typ.encoding import CaseConverter, DecodeFunc, EncodeFunc, decode, encode, json_encoders, json_decoders, JsonError
+from typing import TypeVar, Type, List, Optional, IO, Any
+from typ import encoding
+from typ.encoding import CaseConverter, DecodeFunc, EncodeFunc, json_encoders, json_decoders, JsonError
 import decimal
 import json
 
 
 T = TypeVar('T')
+
+
+def decode(
+        typ: Type[T],
+        data: Any,
+        case: CaseConverter = None,
+        decoders: List[DecodeFunc] = [],
+        ) -> T:
+    return encoding.decode(typ, data, case=case, decoders=decoders + json_decoders)
+
+
+def encode(
+        value: T,
+        typ: Optional[Type[T]] = None,
+        case: CaseConverter = None,
+        encoders: List[EncodeFunc] = [],
+        ) -> Any:
+    return encoding.encode(value, typ, case=case, encoders=encoders+json_encoders)
 
 
 def loads(
@@ -14,7 +33,7 @@ def loads(
         decoders: List[DecodeFunc] = [],
         ) -> T:
     json_value = json.loads(json_str, parse_float=decimal.Decimal)
-    return decode(typ, json_value, case=case, decoders=decoders+json_decoders)
+    return decode(typ, json_value, case=case, decoders=decoders)
 
 
 def dumps(
@@ -24,7 +43,7 @@ def dumps(
         encoders: List[EncodeFunc] = [],
         indent: Optional[int] = None,
         ) -> str:
-    json_value = encode(value, typ, case=case, encoders=encoders+json_encoders)
+    json_value = encode(value, typ, case=case, encoders=encoders)
     return json.dumps(json_value, indent=indent)
 
 
@@ -35,7 +54,7 @@ def load(
         decoders: List[DecodeFunc] = [],
         ) -> T:
     json_value = json.load(fp, parse_float=decimal.Decimal)
-    return decode(typ, json_value, case=case, decoders=decoders+json_decoders)
+    return decode(typ, json_value, case=case, decoders=decoders)
 
 
 def dump(
@@ -46,5 +65,5 @@ def dump(
         encoders: List[EncodeFunc] = [],
         indent: Optional[int] = None,
         ) -> None:
-    json_value = encode(value, typ, case=case, encoders=encoders+json_encoders)
+    json_value = encode(value, typ, case=case, encoders=encoders)
     return json.dump(json_value, fp, indent=indent)
