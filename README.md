@@ -12,7 +12,7 @@ Type-safe JSON (de)serialization for Python. Compatible with mypy type hints.
 * Support for types out of the box:
   * Primitive types:
       * `str`, `int`, `float`, `bool`, `Decimal`, `None`
-      * `date` as `"%Y-%m-%d"`, `datetime` as `"%Y-%m-%dT%H:%M:%S%z"`, `time` as `"%H:%M:%S"`
+      * `date` as `"%Y-%m-%d"`, `datetime` as `"%Y-%m-%dT%H:%M:%S%z"` or `"%Y-%m-%dT%H:%M:%S.%f%z"`, `time` as `"%H:%M:%S"`
       * `UUID` as `str` in format `"8-4-4-4-12"`
       * `char` type as `str` of length 1
   * `Union[]` and therefore `Optional[]`

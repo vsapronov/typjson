@@ -78,6 +78,9 @@ def test_date():
 
 def test_datetime():
     check_success(datetime, datetime(year=2020, month=1, day=1, hour=17, minute=45, second=55, tzinfo=timezone.utc), '"2020-01-01T17:45:55+00:00"')
+    check_success(datetime, datetime(year=2022, month=7, day=12, hour=14, minute=43, second=53, microsecond=123456, tzinfo=timezone.utc), '"2022-07-12T14:43:53.123456+00:00"')
+    with raises(JsonError):
+        loads(datetime, '"2022-07-12"', case=snakecase)
 
 
 def test_time():
