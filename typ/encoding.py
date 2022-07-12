@@ -107,8 +107,13 @@ def decode_datetime(decoder, typ, json_value):
     if typ != datetime:
         return Unsupported
     check_type(str, json_value)
-    parsed = datetime.strptime(json_value, "%Y-%m-%dT%H:%M:%S%z")
-    return parsed
+    for fmt in ["%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%f%z"]:
+        try:
+            parsed = datetime.strptime(json_value, fmt)
+            return parsed
+        except:
+            pass
+    raise JsonError(f"no suitable datetime format found for {json_value}")
 
 
 def encode_time(encoder, typ, value):
